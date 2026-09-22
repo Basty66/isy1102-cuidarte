@@ -6,23 +6,88 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://localhost:4000" },
+    { "key": "base_url", "value": "http://localhost:4444" },
     { "key": "token_admin", "value": "" },
     { "key": "token_medico", "value": "" },
     { "key": "token_paciente", "value": "" },
-    { "key": "paciente_id", "value": "104" },
-    { "key": "paciente_ajeno_id", "value": "105" },
-    { "key": "examen_id", "value": "88" },
-    { "key": "examen_ajeno_id", "value": "89" },
-    { "key": "documento_id", "value": "1" },
+    { "key": "paciente_id", "value": "1" },
+    { "key": "paciente_ajeno_id", "value": "2" },
+    { "key": "examen_id", "value": "" },
+    { "key": "examen_ajeno_id", "value": "" },
+    { "key": "documento_id", "value": "" },
     { "key": "usuario_id", "value": "2" }
   ],
   "item": [
     {
+      "name": "00 · Setup (tokens de los 3 roles)",
+      "item": [
+        {
+          "name": "Login admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('setup: token admin', () => { pm.response.to.have.status(200); pm.collectionVariables.set('token_admin', pm.response.json().token); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"admin\",\n  \"password\": \"admin\"\n}" },
+            "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] }
+          }
+        },
+        {
+          "name": "Login medico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('setup: token medico', () => { pm.response.to.have.status(200); pm.collectionVariables.set('token_medico', pm.response.json().token); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"medico\",\n  \"password\": \"medico\"\n}" },
+            "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] }
+          }
+        },
+        {
+          "name": "Login paciente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('setup: token paciente', () => { pm.response.to.have.status(200); pm.collectionVariables.set('token_paciente', pm.response.json().token); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"paciente\",\n  \"password\": \"paciente\"\n}" },
+            "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] }
+          }
+        }
+      ]
+    },
+    {
       "name": "CP-01 · Login y JWT",
       "item": [
         {
-          "name": "1. Login exitoso (dr_rojas)",
+          "name": "1. Login exitoso (medico del dump)",
           "event": [
             {
               "listen": "test",
@@ -42,7 +107,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"dr_rojas\",\n  \"password\": \"PASSWORD_DEL_DUMP\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"medico\",\n  \"password\": \"medico\"\n}" },
             "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] },
             "description": "Objetivo RF-1.1. Esperado: 200 + token. Si contraseña en BD es texto plano => H-01 (verificar con psql)."
           }
@@ -64,7 +129,7 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"dr_rojas\",\n  \"password\": \"clave_incorrecta_123\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"medico\",\n  \"password\": \"clave_incorrecta_123\"\n}" },
             "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] }
           }
         },
@@ -117,9 +182,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-02: si devuelve 404 => no existe refresh => H-09 / NO CONFORME RF-1.2', () => {",
-                  "  if (pm.response.code === 404) { console.warn('H-09 confirmado: endpoint refresh inexistente'); }",
-                  "  else { pm.expect([200,201]).to.include(pm.response.code); }",
+                  "pm.test('CP-02: refresh debe existir (200/201) — 404 => H-09 / NO CONFORME RF-1.2', () => {",
+                  "  if (pm.response.code === 404) console.error('H-09: endpoint /autenticacion/refresh inexistente');",
+                  "  pm.expect([200,201]).to.include(pm.response.code);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -141,9 +206,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-03: clave de 6 chars debe rechazarse (ERS >=12)', () => {",
-                  "  if (pm.response.code === 201) console.warn('H-01: política real es min(6), ERS exige 12 => NO CONFORME');",
-                  "  else pm.expect(pm.response.code).to.eql(400);",
+                  "pm.test('CP-03: clave de 6 chars debe rechazarse (ERS >=12) — 201 => H-01', () => {",
+                  "  if (pm.response.code === 201) console.error('H-01: política real es min(6), ERS exige 12');",
+                  "  pm.expect(pm.response.code).to.eql(400);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -175,11 +240,12 @@
               "script": {
                 "exec": [
                   "pm.test('CP-04: 201 Created', () => pm.response.to.have.status(201));",
-                  "pm.test('CP-04: latencia total — si >=5000ms => H-13 (delayMiddleware)', () => {",
-                  "  if (pm.response.responseTime >= 4900) console.warn('H-13: delay de 5s presente, NFR-PERF-1 incumplido');",
+                  "pm.test('CP-04: latencia <300ms (NFR-PERF-1) — >=4900ms => H-13 delayMiddleware', () => {",
+                  "  if (pm.response.responseTime >= 4900) console.error('H-13: delay de 5s presente');",
+                  "  pm.expect(pm.response.responseTime).to.be.below(300);",
                   "});",
                   "pm.test('CP-04: viene id', () => pm.expect(pm.response.json()).to.have.property('id'));",
-                  "pm.test('CP-04: medico sin rol => 403 (probar con token_paciente)', () => true);"
+                  "if (pm.response.code === 201) pm.collectionVariables.set('examen_id', String(pm.response.json().id));"
                 ],
                 "type": "text/javascript"
               }
@@ -204,7 +270,8 @@
               "script": {
                 "exec": [
                   "pm.test('CP-04: 201 documento', () => pm.response.to.have.status(201));",
-                  "pm.test('CP-04: sin delay excesivo => H-13 si >5s', () => console.warn('responseTime=' + pm.response.responseTime + 'ms'));"
+                  "if (pm.response.code === 201) pm.collectionVariables.set('documento_id', String(pm.response.json().documento.id));",
+                  "pm.test('CP-04: latencia upload <300ms (NFR-PERF-1)', () => pm.expect(pm.response.responseTime).to.be.below(300));"
                 ],
                 "type": "text/javascript"
               }
@@ -218,7 +285,7 @@
               "formdata": [
                 { "key": "examen_medico_id", "value": "{{examen_id}}", "type": "text" },
                 { "key": "paciente_id", "value": "{{paciente_id}}", "type": "text" },
-                { "key": "documento", "type": "file", "src": [] }
+                { "key": "documento", "type": "file", "src": "tests/fixtures/examen_sangre.pdf" }
               ]
             },
             "url": { "raw": "{{base_url}}/documentos", "host": ["{{base_url}}"], "path": ["documentos"] },
@@ -254,8 +321,24 @@
           "name": "1. Crear paciente (medico)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const n = Date.now().toString().slice(-6);",
+                  "pm.collectionVariables.set('cp05_rut', '9.876.' + n.slice(0,3) + '-' + (n.slice(-1) || '5'));",
+                  "pm.collectionVariables.set('cp05_email', 'cp05_' + n + '@test.cl');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
-              "script": { "exec": ["pm.test('CP-05: 201', () => pm.response.to.have.status(201));"], "type": "text/javascript" }
+              "script": {
+                "exec": [
+                  "pm.test('CP-05: 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
             }
           ],
           "request": {
@@ -264,7 +347,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token_medico}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"rut\": \"12.345.678-9\",\n  \"primer_nombre\": \"Maria\",\n  \"apellido_paterno\": \"Sintetica\",\n  \"fecha_nacimiento\": \"1990-05-10\",\n  \"sexo\": \"F\",\n  \"email\": \"maria.cp05@test.cl\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"rut\": \"{{cp05_rut}}\",\n  \"primer_nombre\": \"Maria\",\n  \"apellido_paterno\": \"Sintetica\",\n  \"fecha_nacimiento\": \"1990-05-10\",\n  \"sexo\": \"F\",\n  \"email\": \"{{cp05_email}}\"\n}" },
             "url": { "raw": "{{base_url}}/pacientes", "host": ["{{base_url}}"], "path": ["pacientes"] }
           }
         },
@@ -415,12 +498,21 @@
           "name": "6. ESCALADA: paciente crea usuario admin => ¿201? (H-02)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.collectionVariables.set('hacker_user', 'hacker_' + Date.now().toString().slice(-8));"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-07/18: debe ser 403 — si es 201 => H-02 CONFIRMADO (escalada de privilegios)', () => {",
+                  "pm.test('CP-07/18: 403 — 201 => H-02 CONFIRMADO', () => {",
                   "  if (pm.response.code === 201) console.error('H-02 CRITICO: rol paciente creo usuario con rol_id=1');",
-                  "  else pm.expect(pm.response.code).to.eql(403);",
+                  "  pm.expect(pm.response.code).to.eql(403);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -433,7 +525,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"hacker_cp07\",\n  \"contrasena_hash\": \"Test1234!\",\n  \"correo\": \"hacker@test.cl\",\n  \"rol_id\": 1\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"{{hacker_user}}\",\n  \"contrasena_hash\": \"Test1234!\",\n  \"correo\": \"{{hacker_user}}@test.cl\",\n  \"rol_id\": 1\n}" },
             "url": { "raw": "{{base_url}}/usuarios", "host": ["{{base_url}}"], "path": ["usuarios"] },
             "description": "Ejecutar SOLO en entorno aislado con BD descartable."
           }
@@ -445,8 +537,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-07: si 200 y usuario_id cambió => H-10', () => {",
-                  "  if (pm.response.code === 200) { const b = pm.response.json(); if (b.usuario_id !== undefined) console.warn('H-10: usuario_id editable por paciente'); }",
+                  "pm.test('CP-07/H-10: PUT solo {usuario_id} no debe aceptar cambio — 200 con usuario_id nuevo => H-10', () => {",
+                  "  if (pm.response.code === 200) { const b = pm.response.json(); if (b.usuario_id !== undefined && String(b.usuario_id) === '99999') console.error('H-10: usuario_id editable'); }",
+                  "  pm.expect([400,403]).to.include(pm.response.code);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -475,8 +568,8 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-08: 200 o 204', () => pm.expect([200,204]).to.include(pm.response.code));",
-                  "pm.test('CP-08 OBS: verificar con psql que la fila sigue existiendo con eliminado=true — si no existe => H-06', () => console.warn('Ejecutar: SELECT id, eliminado FROM examen_medico WHERE id=' + pm.collectionVariables.get('examen_id')));"
+                  "pm.test('CP-08: soft delete 200/204 con admin (medico => 403 en este codigo)', () => pm.expect([200,204]).to.include(pm.response.code));",
+                  "pm.test('CP-08 OBS: fila fisica borrada => H-06 (verificar con psql id=' + pm.collectionVariables.get('examen_id') + ')', () => console.warn('ERS exige soft delete (eliminado=true); codigo usa DELETE FROM'));"
                 ],
                 "type": "text/javascript"
               }
@@ -484,9 +577,9 @@
           ],
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
             "url": { "raw": "{{base_url}}/examenes/{{examen_id}}", "host": ["{{base_url}}"], "path": ["examenes", "{{examen_id}}"] },
-            "description": "RF-3.3. El código actual usa DELETE FROM (H-06). La UI debe exigir modal de confirmación."
+            "description": "RF-3.3. Codigo actual: requireRole solo admin (medico => 403) y DELETE FROM (H-06)."
           }
         },
         {
@@ -548,9 +641,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-18: debe ser 401 — si es 200/404/500 con borrado real => H-03 CRITICO', () => {",
-                  "  if (pm.response.code === 401) console.log('OK: protegido');",
-                  "  else console.error('H-03: endpoint ejecutó acción sin autenticación. code=' + pm.response.code);",
+                  "pm.test('CP-18: DELETE /usuarios sin token debe ser 401 — si 404/200 => H-03 CRITICO', () => {",
+                  "  if (pm.response.code !== 401) console.error('H-03: endpoint ejecuto accion sin autenticacion. code=' + pm.response.code);",
+                  "  pm.expect(pm.response.code).to.eql(401);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -569,7 +662,7 @@
           "event": [
             {
               "listen": "test",
-              "script": { "exec": ["pm.test('CP-18: 401 esperado', () => { if (pm.response.code !== 401) console.error('H-04: /roles sin auth. code=' + pm.response.code); });"], "type": "text/javascript" }
+              "script": { "exec": [                  "pm.test('CP-18: DELETE /roles sin token = 401 — else H-04', () => { if (pm.response.code !== 401) console.error('H-04: /roles sin auth. code=' + pm.response.code); pm.expect(pm.response.code).to.eql(401); });"], "type": "text/javascript" }
             }
           ],
           "request": {
@@ -583,7 +676,7 @@
           "event": [
             {
               "listen": "test",
-              "script": { "exec": ["pm.test('CP-18: 401 esperado', () => { if (pm.response.code === 201) console.error('H-04: rol creado sin autenticación'); });"], "type": "text/javascript" }
+              "script": { "exec": [                  "pm.test('CP-18: POST /roles sin token = 401 — 201 => H-04', () => { if (pm.response.code === 201) console.error('H-04: rol creado sin autenticacion'); pm.expect(pm.response.code).to.eql(401); });"], "type": "text/javascript" }
             }
           ],
           "request": {
@@ -600,7 +693,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-19/18: debe ser 401 — si 200 => H-05 fuga de ficha medica (Ley 20.584)', () => {",
+                  "pm.test('CP-18/19: debe ser 401 — si 200 => H-05 fuga de ficha medica (Ley 20.584)', () => {",
                   "  if (pm.response.code === 200) console.error('H-05 CRITICO: ficha completa expuesta sin auth');",
                   "  else pm.expect(pm.response.code).to.eql(401);",
                   "});"
@@ -612,8 +705,8 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{base_url}}/pacientes/buscar/rut/12.345.678-9", "host": ["{{base_url}}"], "path": ["pacientes", "buscar", "rut", "12.345.678-9"] },
-            "description": "Ley 19.628 + 20.584. ERS exige 401/403."
+            "url": { "raw": "{{base_url}}/pacientes/buscar/rut/11111111-1", "host": ["{{base_url}}"], "path": ["pacientes", "buscar", "rut", "11111111-1"] },
+            "description": "Ley 19.628 + 20.584. ERS exige 401/403. RUT del dump (paciente id 1)."
           }
         },
         {
@@ -714,9 +807,10 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-13A: si >=5000ms => H-13 confirmado, NFR-PERF-1 NO CUMPLE', () => {",
+                  "pm.test('CP-13A: latencia <300ms (NFR-PERF-1) — >=4900 => H-13', () => {",
                   "  console.warn('responseTime=' + pm.response.responseTime + 'ms');",
                   "  if (pm.response.responseTime >= 4900) console.error('H-13: delayMiddleware(5000) activo');",
+                  "  pm.expect(pm.response.responseTime).to.be.below(300);",
                   "});"
                 ],
                 "type": "text/javascript"

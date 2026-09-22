@@ -1,0 +1,12 @@
+{
+  "name": "isy1102-cuidarte-pruebas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ejecucion de pruebas ISY1102 Cuidarte+ (Newman)",
+  "scripts": {
+    "test": "newman run Cuidarte_CP01-19.postman_collection.json -e tests/environment.json --reporters cli,json --reporter-json-export reports/results.json --timeout-request 20000 --delay-request 100"
+  },
+  "devDependencies": {
+    "newman": "^6.2.1"
+  }
+}
