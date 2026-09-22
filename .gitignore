@@ -1,0 +1,21 @@
+# Secretos (H-08: no subir .env al repo)
+.env
+**/.env
+
+# Dependencias
+node_modules/
+BACKEND/node_modules/
+FRONTEND/node_modules/
+
+# Artefactos de pruebas generados
+reports/*.xml
+reports/*.html
+reports/*.out
+
+# ZIP del código fuente (contiene .env adentro)
+CodigoFuenteB.zip
+
+# Sistema
+.DS_Store
+Thumbs.db
+*.log

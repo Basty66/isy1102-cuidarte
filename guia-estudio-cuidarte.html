@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuidarte+ · Guía Interactiva de Estudio — ISY1102</title>
+<style>
+  :root{
+    --bg:#0f172a; --panel:#1e293b; --panel2:#273549; --ink:#e2e8f0; --muted:#94a3b8;
+    --teal:#2dd4bf; --teal-d:#14b8a6; --red:#f87171; --amber:#fbbf24; --green:#4ade80;
+    --blue:#60a5fa; --violet:#a78bfa; --line:#334155; --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;min-height:100vh}
+  header{background:linear-gradient(135deg,#0d9488 0%,#115e59 60%,#0f766e 100%);padding:26px 20px 22px;text-align:center;border-bottom:3px solid var(--teal)}
+  header h1{font-size:1.7rem;letter-spacing:.5px}
+  header p{color:#ccfbf1;margin-top:6px;font-size:.95rem}
+  nav{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;background:var(--panel);padding:12px;position:sticky;top:0;z-index:50;border-bottom:1px solid var(--line)}
+  nav button{background:var(--panel2);color:var(--ink);border:1px solid var(--line);padding:9px 16px;border-radius:999px;cursor:pointer;font-size:.88rem;font-weight:600;transition:.15s}
+  nav button:hover{border-color:var(--teal);color:var(--teal)}
+  nav button.active{background:var(--teal);color:#042f2e;border-color:var(--teal)}
+  main{max-width:1100px;margin:0 auto;padding:24px 16px 80px}
+  section{display:none;animation:fade .3s ease}
+  section.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h2{color:var(--teal);font-size:1.35rem;margin:22px 0 12px;border-left:4px solid var(--teal);padding-left:10px}
+  h3{font-size:1.05rem;margin:16px 0 8px;color:#f1f5f9}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:12px 0}
+  .grid{display:grid;gap:14px}
+  @media(min-width:760px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:1fr 1fr 1fr}}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:700;letter-spacing:.3px}
+  .p-crit{background:#7f1d1d;color:#fecaca;border:1px solid #b91c1c}
+  .p-high{background:#78350f;color:#fde68a;border:1px solid #b45309}
+  .p-med{background:#1e3a8a;color:#bfdbfe;border:1px solid #2563eb}
+  .p-ok{background:#14532d;color:#bbf7d0;border:1px solid #16a34a}
+  .p-info{background:#0f3d3e;color:#99f6e4;border:1px solid #14b8a6}
+  .tag{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.78rem;color:var(--muted);margin:2px}
+  .tag b{color:var(--teal)}
+  table{width:100%;border-collapse:collapse;font-size:.87rem;margin:10px 0}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--teal);font-size:.8rem;text-transform:uppercase;letter-spacing:.4px}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  .ok{color:var(--green);font-weight:700}
+  .bad{color:var(--red);font-weight:700}
+  .warn{color:var(--amber);font-weight:700}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .filters button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.85rem}
+  .filters button.active{background:var(--teal);color:#042f2e;border-color:var(--teal);font-weight:700}
+  .find{border-left:4px solid var(--line);cursor:pointer;transition:.15s}
+  .find:hover{background:var(--panel2)}
+  .find.open .fdetail{display:block}
+  .fdetail{display:none;margin-top:10px;padding:12px;background:#0b1220;border-radius:10px;border:1px dashed var(--line);font-size:.88rem}
+  .find .ftitle{font-weight:700;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center}
+  .find .floc{font-family:Consolas,monospace;color:var(--amber);font-size:.8rem}
+  .flip{perspective:1000px;min-height:170px;cursor:pointer}
+  .flip-in{position:relative;width:100%;height:100%;min-height:170px;transition:transform .5s;transform-style:preserve-3d}
+  .flip.on .flip-in{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:var(--radius);border:1px solid var(--line);padding:16px;display:flex;flex-direction:column;justify-content:center;text-align:center;background:var(--panel)}
+  .face.back{transform:rotateY(180deg);background:#0b3d3a;border-color:var(--teal-d)}
+  .face .hint{font-size:.72rem;color:var(--muted);margin-top:10px}
+  .face.back .ans{color:#5eead4;font-size:.92rem}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:14px 0}
+  .q .qt{font-weight:700;margin-bottom:10px}
+  .q .opt{display:block;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);color:var(--ink);padding:10px 14px;margin:6px 0;border-radius:8px;cursor:pointer;font-size:.9rem;transition:.12s}
+  .q .opt:hover{border-color:var(--teal)}
+  .q .opt.correct{background:#14532d;border-color:#16a34a;color:#bbf7d0}
+  .q .opt.wrong{background:#7f1d1d;border-color:#b91c1c;color:#fecaca}
+  .q .fb{display:none;margin-top:10px;padding:10px 12px;border-radius:8px;font-size:.87rem}
+  .q .fb.show{display:block}
+  .q .fb.good{background:#052e16;border:1px solid #166534;color:#86efac}
+  .q .fb.bad{background:#450a0a;border:1px solid #991b1b;color:#fca5a5}
+  .bar{height:12px;background:var(--panel2);border-radius:999px;overflow:hidden;border:1px solid var(--line);margin:6px 0 2px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal-d),var(--teal));width:0;transition:width .6s}
+  .check{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-bottom:1px dashed var(--line);font-size:.9rem}
+  .check input{margin-top:4px;accent-color:var(--teal);width:16px;height:16px;cursor:pointer}
+  .check label{cursor:pointer}
+  .done{color:var(--muted);text-decoration:line-through}
+  .score{font-size:2rem;font-weight:800;color:var(--teal);text-align:center;margin:14px 0}
+  .kbd{font-family:Consolas,monospace;background:#0b1220;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.85rem;color:var(--amber)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.8rem;color:var(--muted);margin:8px 0}
+  .legend span{display:flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+  .flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:10px 0}
+  .flow .step{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 12px;font-size:.83rem}
+  .flow .arr{color:var(--teal);font-weight:700}
+  .note{background:#0b1220;border-left:3px solid var(--amber);padding:10px 14px;border-radius:0 8px 8px 0;font-size:.88rem;color:#fde68a;margin:10px 0}
+  .note.teal{border-color:var(--teal);color:#99f6e4}
+  footer{text-align:center;color:var(--muted);font-size:.8rem;padding:24px 10px;border-top:1px solid var(--line)}
+  .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+  .modal.show{display:flex}
+  .modal .box{background:var(--panel);border:1px solid var(--teal);border-radius:var(--radius);max-width:720px;width:100%;max-height:85vh;overflow:auto;padding:22px}
+  .modal .box h3{color:var(--teal)}
+  .close{float:right;background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🩺 Cuidarte+ · Guía Interactiva de Estudio</h1>
+  <p>ISY1102 — Seguridad y Calidad en el Desarrollo de Software · CreaLab SpA</p>
+</header>
+
+<nav id="nav">
+  <button data-t="t-eval" class="active">🎯 Qué pide la evaluación</button>
+  <button data-t="t-cump">✅ Qué cumple</button>
+  <button data-t="t-falta">❌ Qué falta</button>
+  <button data-t="t-find">🔍 17 Hallazgos</button>
+  <button data-t="t-plan">🧪 Plan de pruebas</button>
+  <button data-t="t-traza">🔗 Trazabilidad</button>
+  <button data-t="t-cards">🃏 Flashcards</button>
+  <button data-t="t-quiz">📝 Quiz</button>
+  <button data-t="t-check">📋 Checklist</button>
+</nav>
+
+<main>
+
+<!-- ==================== 1. EVALUACIÓN ==================== -->
+<section id="t-eval" class="show">
+  <h2>Qué pide realmente la evaluación</h2>
+  <div class="note teal">La evaluación NO es "que el código ande": es <b>demostrar con evidencia</b> que cruzaste <span class="kbd">ERS → criterio → caso de prueba → resultado</span>. Ese cruce es el indicador de logro (IE5): <b>cobertura de trazabilidad 100%</b>.</div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>📄 Entregable 1 — Informe de criterios</h3>
+      <p style="font-size:.9rem">Sección 2: matriz analítica con <b>tres pilares</b>. Si falta uno, se pierde puntos.</p>
+      <div style="margin-top:8px">
+        <span class="tag"><b>ISO/IEC 25010</b> usabilidad, rendimiento, disponibilidad, mantenibilidad</span>
+        <span class="tag"><b>OWASP Top 10</b> SQLi, XSS, CSRF, RBAC, autenticación</span>
+        <span class="tag"><b>Legislación chilena</b> Ley 19.628 + Ley 20.584</span>
+      </div>
+      <p style="font-size:.85rem;color:var(--muted);margin-top:8px">Cada criterio debe citar su ID del ERS: <span class="kbd">NFR-SEG-2</span>, <span class="kbd">RF-3.3</span>, <span class="kbd">RB-1</span>…</p>
+    </div>
+
+    <div class="card">
+      <h3>📄 Entregable 2 — Plan de pruebas</h3>
+      <p style="font-size:.9rem">Debe incluir <b>todo</b> esto (si falta alguno, el plan está incompleto):</p>
+      <div style="font-size:.87rem;margin-top:6px">
+        3.1 Estrategia + fases + prioridades + riesgos<br>
+        3.2 Tipos de prueba + justificación<br>
+        3.3 Criterios de entrada / salida / aceptación transversales<br>
+        3.4 Herramientas + recursos humanos/técnicos + ambiente<br>
+        + Métricas con números (metas cuantitativas)
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>📄 Entregable 3 — Casos de prueba</h3>
+      <p style="font-size:.9rem">Formato estandarizado <b>obligatorio</b>, cada caso con:</p>
+      <div style="font-size:.87rem;margin-top:6px">
+        ID (CP-xx) · Nombre · Requerimiento asociado · Prioridad<br>
+        Objetivo · Precondiciones · Datos de prueba<br>
+        Pasos numerados · Resultado esperado<br>
+        Criterios de aceptación (numéricos) · Tipo · Evidencia
+      </div>
+      <div class="note" style="margin-top:10px">Los casos deben usar los <b>endpoints REALES</b> del código (<span class="kbd">/autenticacion/login</span>, <span class="kbd">/examenes</span>), no rutas inventadas.</div>
+    </div>
+
+    <div class="card">
+      <h3>📄 Entregable 4 — Matriz de trazabilidad</h3>
+      <p style="font-size:.9rem">Tabla que vincula cada ID del ERS con:</p>
+      <div class="flow">
+        <span class="step">ID ERS</span><span class="arr">→</span>
+        <span class="step">Tipo de prueba</span><span class="arr">→</span>
+        <span class="step">Control legal</span><span class="arr">→</span>
+        <span class="step">Caso CP-xx</span>
+      </div>
+      <p style="font-size:.87rem"><span class="ok">✔</span> Sin ID huérfanos &nbsp; <span class="ok">✔</span> Sin casos "huérfanos" &nbsp;→ <b>28/28 = 100%</b></p>
+    </div>
+  </div>
+
+  <h2>Cómo se evalúa (rúbrica)</h2>
+  <table>
+    <tr><th>Criterio</th><th>Qué mira el profesor</th><th>Error común</th></tr>
+    <tr><td>Estructura formal</td><td>Portada, índice, secciones numeradas, glosario</td><td>Índice desincronizado del contenido</td></tr>
+    <tr><td>Rigor técnico</td><td>Cada control cita su norma (ISO, OWASP, ley)</td><td>Afirmar "cumple WCAG" sin criterio medible</td></tr>
+    <tr><td>Trazabilidad (IE5)</td><td>Cruce ERS ↔ casos sin vacíos</td><td>RF-2.x apuntando al caso de login</td></tr>
+    <tr><td>Verificabilidad</td><td>Casos ejecutables con datos y endpoints concretos</td><td>Pasos ambiguos ("verificar que funcione")</td></tr>
+    <tr><td>Honestidad técnica</td><td>Esperado ≠ obtenido bien documentado</td><td>Marcar "APROBADO" lo que el código no hace</td></tr>
+    <tr><td>Evidencia</td><td>Capturas, reportes .jtl/ZAP, dumps psql</td><td>Afirmar sin probar</td></tr>
+  </table>
+
+  <div class="card">
+    <h3>🎓 Regla de oro de la carrera</h3>
+    <p style="font-size:.92rem">Si el informe dice "el sistema usará bcrypt" y el código no lo tiene → el caso de prueba debe <b>fallar y quedar documentado como hallazgo</b>, no maquillarse. Un plan bien armado <b>predice</b> los fallos: eso demuestra dominio.</p>
+  </div>
+</section>
+
+<!-- ==================== 2. QUÉ CUMPLE ==================== -->
+<section id="t-cump">
+  <h2>Qué cumple el sistema ✅</h2>
+  <p style="color:var(--muted);font-size:.9rem">Verificado por revisión estática del código real (<span class="kbd">CodigoFuenteB</span>). Haz clic en cada fila para ver la evidencia.</p>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--green)"></i> Cumple</span>
+    <span><i class="dot" style="background:var(--amber)"></i> Cumple parcial</span>
+    <span><i class="dot" style="background:var(--red)"></i> No cumple</span>
+  </div>
+
+  <table id="tbCumple">
+    <tr><th>Requerimiento</th><th>Qué dice el ERS</th><th>Estado</th><th>Evidencia en código</th></tr>
+    <tr><td><b>NFR-SEG-5 (SQLi)</b></td><td>Consultas parametrizadas con pg</td><td class="ok">✅ CUMPLE</td><td>Todas las queries usan <span class="kbd">$1, $2…</span> — <b>0 hallazgos de inyección SQL</b></td></tr>
+    <tr><td><b>RB-1 (lectura)</b></td><td>Paciente solo ve sus propios exámenes/documentos</td><td class="ok">✅ CUMPLE</td><td><span class="kbd">examenes.js:144-162</span> filtra por su paciente_id; <span class="kbd">documentos.js:222-234</span> verifica propiedad</td></tr>
+    <tr><td><b>RF-3.1 (crear examen)</b></td><td>Solo médico/admin crean exámenes</td><td class="ok">✅ CUMPLE</td><td><span class="kbd">examenes.js:46</span> → <span class="kbd">requireRole(["medico","admin"])</span></td></tr>
+    <tr><td><b>Validación de entrada</b></td><td>Validación server-side de parámetros</td><td class="ok">✅ CUMPLE</td><td>Middleware <span class="kbd">validate.js</span> + esquemas <span class="kbd">yup</span> en <span class="kbd">/validations</span></td></tr>
+    <tr><td><b>RUT chileno</b></td><td>Integración local/Chilena</td><td class="ok">✅ CUMPLE</td><td><span class="kbd">utils/rut.js</span> con normalización + regex de formato</td></tr>
+    <tr><td><b>NFR-USAB (parcial)</b></td><td>SPA responsiva, roles en UI</td><td class="ok">✅ CUMPLE</td><td>Tailwind responsivo + <span class="kbd">RoleGuard.jsx</span> + <span class="kbd">AuthContext</span></td></tr>
+    <tr><td><b>Mantenibilidad</b></td><td>Capas desacopladas + Swagger</td><td class="ok">✅ CUMPLE</td><td>Rutas por recurso, <span class="kbd">openapi.json</span> en <span class="kbd">/docs</span></td></tr>
+    <tr><td><b>RF-4.3/4.4 (adjuntos)</b></td><td>Subida de PDF/JPG/PNG con límite</td><td class="warn">⚠️ PARCIAL</td><td>Multer con whitelist MIME y 10 MB — pero sin cifrar (BYTEA) ni validar firma binaria</td></tr>
+    <tr><td><b>RF-5.1 (auditoría)</b></td><td>Log de toda acción crítica</td><td class="warn">⚠️ PARCIAL</td><td>Existe tabla <span class="kbd">auditoria</span> y logs en casi todos los CRUD — pero sin IP ni recurso, y no es atómica</td></tr>
+    <tr><td><b>Swagger/OpenAPI</b></td><td>Documentación de endpoints</td><td class="ok">✅ CUMPLE</td><td><span class="kbd">GET /openapi.json</span> + UI en <span class="kbd">/docs</span></td></tr>
+    <tr><td><b>Docker/DevOps</b></td><td>Despliegue orquestado</td><td class="ok">✅ CUMPLE</td><td><span class="kbd">docker-compose.yml</span> + Dockerfiles frontend/backend</td></tr>
+  </table>
+
+  <div class="note teal"><b>Resumen:</b> lo que funciona bien es la <b>capa de datos</b> (SQL seguro) y el <b>RBAC de lectura clínica</b>. Lo que falla está en autenticación, autorización de mutaciones y diseño de auditoría.</div>
+</section>
+
+<!-- ==================== 3. QUÉ FALTA ==================== -->
+<section id="t-falta">
+  <h2>Qué falta / qué está roto ❌</h2>
+  <p style="color:var(--muted);font-size:.9rem">Contradicciones directas ERS vs código. Este es el corazón de la evaluación: <b>detectarlas y probarlas</b>.</p>
+
+  <div class="grid g2">
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>1. Sin bcrypt — contraseñas en claro</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> NFR-SEG-2 → hashing bcrypt con salt.<br>
+      <b>Código hace:</b> <span class="kbd">user.contrasena !== password</span> comparación directa.<br>
+      <span class="floc">auth.js:21, 110</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-01 y CP-03 lo detectan.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>2. Sin refresh token</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> RF-1.2 / NFR-SEG-9 → JWT corto + refresh en cookie HttpOnly.<br>
+      <b>Código hace:</b> JWT de <b>2 horas</b> en <span class="kbd">localStorage</span>, sin endpoint refresh.<br>
+      <span class="floc">auth.js:54 · AuthContext.jsx:41</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-02 lo detecta.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>3. No hay soft delete</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> RF-3.3 → borrado lógico con modal de confirmación.<br>
+      <b>Código hace:</b> <span class="kbd">DELETE FROM examen_medico / pacientes / usuarios</span> (físico + CASCADE).<br>
+      <span class="floc">examenes.js:408 · pacientes.js:399 · users.js:574</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-08 lo detecta.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>4. Auditoría incompleta</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> RF-5.1 → usuario, timestamp, <b>IP</b> y <b>recurso</b>, inmutable.<br>
+      <b>Código hace:</b> tabla solo <span class="kbd">(usuario_id, accion, fecha_hora)</span>; log <i>después</i> de la mutación; sin REVOKE.<br>
+      <span class="floc">init.sql:88-93</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-08 y CP-09 lo detectan.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>5. Latencia imposible: delay(5000)</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> NFR-PERF-1 → API &lt;300 ms; 200 usuarios (NFR-PERF-3).<br>
+      <b>Código hace:</b> <span class="kbd">delayMiddleware(5000)</span> en examenes, pacientes y documentos → <b>mínimo 5 s</b> por petición.<br>
+      <span class="floc">delay.js:5 · examenes.js:46,99,330</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-13 (prueba A/B) lo detecta.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--red)">
+      <h3>6. RBAC roto en mutaciones</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> RB-2 / NFR-SEG-4 → todo endpoint protegido.<br>
+      <b>Código hace:</b> <span class="kbd">DELETE /usuarios</span> sin token (¡borra!); <span class="kbd">/roles</span> sin auth; <span class="kbd">POST /usuarios</span> permite que paciente cree admins; búsqueda de paciente <b>por RUT pública</b>.<br>
+      <span class="floc">users.js:571 · roles.js:18 · pacientes.js:249</span></p>
+      <p style="font-size:.85rem;margin-top:6px;color:var(--muted)">→ CP-07, CP-18 y CP-19 lo detectan.</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--amber)">
+      <h3>7. Sin cabeceras de seguridad</h3>
+      <p style="font-size:.88rem"><b>ERS dice:</b> NFR-SEG-1/5 → TLS + CSP + HSTS + X-Frame…<br>
+      <b>Código hace:</b> cero helmet; <span class="kbd">cors()</span> abierto a cualquier origen.<br>
+      <span class="floc">app.js:21</span> → CP-12</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--amber)">
+      <h3>8. Secretos en el repositorio</h3>
+      <p style="font-size:.88rem"><b>Buena práctica:</b> .env fuera del repo.<br>
+      <b>Código hace:</b> <span class="kbd">JWT_SECRET</span> real + password de BD en el ZIP; fallback <span class="kbd">"inseguro"</span>.<br>
+      <span class="floc">BACKEND/.env · auth.js:8</span> → CP-19</p>
+    </div>
+
+    <div class="card" style="border-left:4px solid var(--amber)">
+      <h3>9. Sin rate limit ni tests</h3>
+      <p style="font-size:.88rem"><b>Plan dice:</b> Jest + Supertest desde fase 1.<br>
+      <b>Código hace:</b> 0 archivos de test, 0 límite de intentos de login, sin bcrypt que comparar.<br>
+      <span class="floc">package.json:6-9</span> → CP-01, CP-10</p>
+    </div>
+  </div>
+
+  <h2>Conteo de brechas por criterio</h2>
+  <div class="card">
+    <p style="font-size:.9rem">NFR-SEG-2 (bcrypt)</p><div class="bar"><i style="width:5%;background:var(--red)"></i></div><span style="font-size:.8rem;color:var(--muted)">0% implementado</span>
+    <p style="font-size:.9rem;margin-top:10px">NFR-SEG-9 (refresh/sesión)</p><div class="bar"><i style="width:25%;background:var(--red)"></i></div><span style="font-size:.8rem;color:var(--muted)">~25% (solo JWT básico)</span>
+    <p style="font-size:.9rem;margin-top:10px">RF-3.3 (soft delete)</p><div class="bar"><i style="width:0%;background:var(--red)"></i></div><span style="font-size:.8rem;color:var(--muted)">0% — deletes físicos</span>
+    <p style="font-size:.9rem;margin-top:10px">RF-5.1 (auditoría completa)</p><div class="bar"><i style="width:45%;background:var(--amber)"></i></div><span style="font-size:.8rem;color:var(--muted)">~45% — existe pero incompleta</span>
+    <p style="font-size:.9rem;margin-top:10px">NFR-SEG-4 (RBAC total)</p><div class="bar"><i style="width:55%;background:var(--amber)"></i></div><span style="font-size:.8rem;color:var(--muted)">~55% — lectura bien, mutaciones rotas</span>
+    <p style="font-size:.9rem;margin-top:10px">NFR-SEG-5 (anti-SQLi)</p><div class="bar"><i style="width:95%;background:var(--green)"></i></div><span style="font-size:.8rem;color:var(--muted)">~95% — SQL seguro, faltan cabeceras</span>
+    <p style="font-size:.9rem;margin-top:10px">NFR-PERF (rendimiento)</p><div class="bar"><i style="width:10%;background:var(--red)"></i></div><span style="font-size:.8rem;color:var(--muted)">~10% — delay de 5 s lo rompe</span>
+  </div>
+</section>
+
+<!-- ==================== 4. HALLAZGOS ==================== -->
+<section id="t-find">
+  <h2>17 Hallazgos de seguridad</h2>
+  <p style="color:var(--muted);font-size:.9rem">Haz clic en cada hallazgo para ver evidencia, impacto legal y qué caso de prueba lo detecta.</p>
+
+  <div class="filters" id="fFilters">
+    <button class="active" data-f="all">Todos (17)</button>
+    <button data-f="crit">Críticos (6)</button>
+    <button data-f="high">Altos (6)</button>
+    <button data-f="med">Medios (5)</button>
+    <button data-f="owasp">OWASP A01</button>
+  </div>
+
+  <div id="findList">
+    <!-- H-01 -->
+    <div class="card find" data-sev="crit" data-cat="a07">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-01 · Contraseñas en texto plano</span><span class="floc">auth.js:21,110</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> login compara string directo (<span class="kbd">user.contrasena !== password</span>); registro inserta la clave sin hash. No hay bcrypt en todo el proyecto.</p>
+        <p><b>Impacto:</b> un volcado de BD expone todas las claves. Viola NFR-SEG-2 y confidencialidad (Ley 19.628).</p>
+        <p><b>OWASP:</b> A07 Identification & Auth Failures · <b>Detecta:</b> CP-01, CP-03</p>
+        <p><b>Fix sugerido:</b> bcrypt.hash(cost 12) + bcrypt.compare; migrar claves existentes.</p>
+      </div>
+    </div>
+    <!-- H-02 -->
+    <div class="card find" data-sev="crit" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-02 · Paciente crea usuarios admin</span><span class="floc">users.js:23-53</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> <span class="kbd">POST /usuarios</span> solo exige cualquier token válido y acepta <span class="kbd">rol_id</span> libre → un paciente autenticado crea un admin.</p>
+        <p><b>Impacto:</b> takeover total del sistema. Viola RB-2 y NFR-SEG-4.</p>
+        <p><b>OWASP:</b> A01 Broken Access Control · <b>Detecta:</b> CP-07, CP-18</p>
+      </div>
+    </div>
+    <!-- H-03 -->
+    <div class="card find" data-sev="crit" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-03 · DELETE /usuarios sin autenticación</span><span class="floc">users.js:571-589</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> ejecuta <span class="kbd">DELETE FROM usuarios</span> <b>antes</b> de leer el header Authorization; el token solo se consulta después (para el log).</p>
+        <p><b>Impacto:</b> cualquiera con curl borra cualquier cuenta sin login.</p>
+        <p><b>OWASP:</b> A01 · <b>Detecta:</b> CP-18 (caso estrella de la evaluación)</p>
+      </div>
+    </div>
+    <!-- H-04 -->
+    <div class="card find" data-sev="crit" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-04 · /roles completo sin auth</span><span class="floc">roles.js:18,57,76</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> crear, renombrar y borrar roles sin token (incluso el rol admin). GET público.</p>
+        <p><b>Impacto:</b> manipulación del modelo de autorización global; CASCADE borra asignaciones.</p>
+        <p><b>OWASP:</b> A01 · <b>Detecta:</b> CP-18</p>
+      </div>
+    </div>
+    <!-- H-05 -->
+    <div class="card find" data-sev="crit" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-05 · Ficha médica pública por RUT</span><span class="floc">pacientes.js:249-273</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> <span class="kbd">GET /pacientes/buscar/rut/:rut</span> sin token devuelve <span class="kbd">p.*</span>: alergias, crónicos, discapacidades, contacto de emergencia…</p>
+        <p><b>Impacto:</b> con solo el RUT de alguien extraes su expediente completo. Vulnera directamente Ley 20.584 (reserva clínica) y RB-1.</p>
+        <p><b>OWASP:</b> A01 · <b>Detecta:</b> CP-06, CP-19</p>
+      </div>
+    </div>
+    <!-- H-06 -->
+    <div class="card find" data-sev="crit" data-cat="a04">
+      <div class="ftitle"><span><span class="pill p-crit">CRÍTICO</span> H-06 · Eliminación física (no hay soft delete)</span><span class="floc">examenes.js:408 + 3 rutas más</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> <span class="kbd">DELETE FROM</span> en examen_medico, pacientes, usuarios y documentos_examen (con CASCADE se borran adjuntos clínicos).</p>
+        <p><b>Impacto:</b> pérdida irreversible de evidencia médica. Incumple RF-3.3 de forma total.</p>
+        <p><b>OWASP:</b> A04 Insecure Design · <b>Detecta:</b> CP-08</p>
+      </div>
+    </div>
+    <!-- H-07 -->
+    <div class="card find" data-sev="high" data-cat="a04">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-07 · Borrar usuario anula sus logs</span><span class="floc">init.sql:90</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> FK <span class="kbd">ON DELETE SET NULL</span> en auditoria.usuario_id → al borrar un usuario, sus logs quedan sin autor.</p>
+        <p><b>Impacto:</b> pérdida de atribución forense (justo lo que pide RF-5.1 / peritaje).</p>
+        <p><b>OWASP:</b> A04 · <b>Detecta:</b> CP-09</p>
+      </div>
+    </div>
+    <!-- H-08 -->
+    <div class="card find" data-sev="high" data-cat="a02">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-08 · Secretos en el ZIP + fallback "inseguro"</span><span class="floc">BACKEND/.env · auth.js:8</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> JWT_SECRET real y password de PostgreSQL viajan en el repo; si falta la variable, el secreto es la cadena "inseguro" → cualquiera forja tokens.</p>
+        <p><b>OWASP:</b> A02 Cryptographic Failures · <b>Detecta:</b> CP-01, CP-19</p>
+      </div>
+    </div>
+    <!-- H-09 -->
+    <div class="card find" data-sev="high" data-cat="a07">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-09 · JWT 2 h en localStorage, sin refresh</span><span class="floc">auth.js:54 · AuthContext.jsx:41</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> sin endpoint refresh, token de larga vida en localStorage (legible por cualquier XSS).</p>
+        <p><b>Impacto:</b> ventana de robo de sesión de 2 horas. Incumple RF-1.2 / NFR-SEG-9.</p>
+        <p><b>OWASP:</b> A07 · <b>Detecta:</b> CP-02</p>
+      </div>
+    </div>
+    <!-- H-10 -->
+    <div class="card find" data-sev="high" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-10 · Paciente reasigna su ficha (usuario_id editable)</span><span class="floc">pacientes.js:341</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> <span class="kbd">usuario_id</span> está en allowedFields del PUT y el rol paciente puede editarlo → liga su expediente a otra cuenta.</p>
+        <p><b>OWASP:</b> A01 · <b>Detecta:</b> CP-07</p>
+      </div>
+    </div>
+    <!-- H-11 -->
+    <div class="card find" data-sev="high" data-cat="a01">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-11 · Médico se autopromueve a admin</span><span class="floc">users.js:522-532</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> con <span class="kbd">isAdminOrMedico</span> se ejecuta DELETE+INSERT de usuario_roles con el rol_id que llegue del body.</p>
+        <p><b>OWASP:</b> A01 · <b>Detecta:</b> CP-07, CP-18</p>
+      </div>
+    </div>
+    <!-- H-12 -->
+    <div class="card find" data-sev="high" data-cat="a09">
+      <div class="ftitle"><span><span class="pill p-high">ALTO</span> H-12 · Auditoría sin IP/recurso, no atómica</span><span class="floc">init.sql:88-93 · roles.js:25</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> (1) faltan columnas ip_origen y recurso_id que pide el CP-08; (2) el log se escribe DESPUÉS de la mutación y fuera de transacción; (3) a veces mete un string en usuario_id BIGINT y el INSERT falla en silencio; (4) sin REVOKE es editable.</p>
+        <p><b>OWASP:</b> A09 Logging Failures · <b>Detecta:</b> CP-08, CP-09</p>
+      </div>
+    </div>
+    <!-- H-13 -->
+    <div class="card find" data-sev="high" data-cat="perf">
+      <div class="ftitle"><span><span class="pill p-high">ALTO (calidad)</span> H-13 · delay(5000) rompe NFR-PERF-1</span><span class="floc">delay.js:5 · examenes.js:46+</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> retardo artificial de 5 s en examenes, pacientes y documentos sin comprobar NODE_ENV → la meta de &lt;300 ms es imposible y 200 usuarios colapsarían.</p>
+        <p><b>ERS:</b> NFR-PERF-1, NFR-PERF-3, RF-4 · <b>Detecta:</b> CP-13 (prueba A/B), CP-04, CP-14</p>
+      </div>
+    </div>
+    <!-- H-14 -->
+    <div class="card find" data-sev="med" data-cat="a05">
+      <div class="ftitle"><span><span class="pill p-med">MEDIO</span> H-14 · Sin helmet ni CORS restringido</span><span class="floc">app.js:21</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> <span class="kbd">cors()</span> abierto; cero CSP, HSTS, X-Frame-Options, X-Content-Type-Options.</p>
+        <p><b>OWASP:</b> A05 Misconfiguration · <b>Detecta:</b> CP-12</p>
+      </div>
+    </div>
+    <!-- H-15 -->
+    <div class="card find" data-sev="med" data-cat="a05">
+      <div class="ftitle"><span><span class="pill p-med">MEDIO</span> H-15 · Errores de PostgreSQL al cliente</span><span class="floc">todos los catch (glosa: err.message)</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> mensajes reales de la BD (tablas, constraints) en respuestas 500. Viol el propio criterio "no revelar stack trace".</p>
+        <p><b>OWASP:</b> A05 · <b>Detecta:</b> CP-10, CP-19</p>
+      </div>
+    </div>
+    <!-- H-16 -->
+    <div class="card find" data-sev="med" data-cat="a07">
+      <div class="ftitle"><span><span class="pill p-med">MEDIO</span> H-16 · Sin límite de intentos de login</span><span class="floc">auth.js:10</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> no hay rate limit ni log de intentos fallidos → fuerza bruta libre (aún peor con claves en claro, H-01).</p>
+        <p><b>OWASP:</b> A07 · <b>Detecta:</b> CP-01, CP-10</p>
+      </div>
+    </div>
+    <!-- H-17 -->
+    <div class="card find" data-sev="med" data-cat="a04">
+      <div class="ftitle"><span><span class="pill p-med">MEDIO</span> H-17 · Adjuntos sin cifrar + filtro MIME débil</span><span class="floc">documentos.js:10-28 · init.sql:82</span></div>
+      <div class="fdetail">
+        <p><b>Qué pasa:</b> MIME declarado por el cliente (spoofeable), nombre de archivo sin sanitizar en Content-Disposition (inyección CRLF), BYTEA sin cifrar (NFR-SEG-3), uploads sin volumen persistente en Docker.</p>
+        <p><b>OWASP:</b> A04 · <b>Detecta:</b> CP-04, CP-14, CP-17</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>OWASP Top 10 (2021) — veredicto</h3>
+    <table>
+      <tr><th>Categoría</th><th>Hallazgos</th><th>Estado</th></tr>
+      <tr><td>A01 Broken Access Control</td><td>H-02, H-03, H-04, H-05, H-10, H-11</td><td class="bad">❌ Grave</td></tr>
+      <tr><td>A02 Cryptographic Failures</td><td>H-01, H-08</td><td class="bad">❌ Grave</td></tr>
+      <tr><td>A03 Injection (SQLi/XSS)</td><td>— SQL parametrizado</td><td class="ok">✅ Sin hallazgos SQLi</td></tr>
+      <tr><td>A04 Insecure Design</td><td>H-06, H-07, H-12, H-17</td><td class="bad">❌ Grave</td></tr>
+      <tr><td>A05 Security Misconfiguration</td><td>H-14, H-15</td><td class="warn">⚠️ Parcial</td></tr>
+      <tr><td>A07 Auth Failures</td><td>H-09, H-16</td><td class="bad">❌ Grave</td></tr>
+      <tr><td>A09 Logging Failures</td><td>H-12</td><td class="bad">❌ Grave</td></tr>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== 5. PLAN ==================== -->
+<section id="t-plan">
+  <h2>Plan de pruebas — estructura perfecta</h2>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>📊 Las 4 fases</h3>
+      <div class="flow" style="flex-direction:column;align-items:stretch">
+        <div class="step"><b>1. Unitarias/Integración</b> — Jest + Supertest<br><span style="color:var(--muted);font-size:.83rem">Middlewares JWT, controladores, queries · hoy: 0 tests → gap</span></div>
+        <span class="arr" style="text-align:center">▼</span>
+        <div class="step"><b>2. Funcionales/Sistema</b> — Postman/Newman + UI manual<br><span style="color:var(--muted);font-size:.83rem">Login, CRUD, adjuntos, RBAC end-to-end</span></div>
+        <span class="arr" style="text-align:center">▼</span>
+        <div class="step"><b>3. No funcionales</b> — JMeter + OWASP ZAP<br><span style="color:var(--muted);font-size:.83rem">200 usuarios · DAST SQLi/XSS/cabeceras</span></div>
+        <span class="arr" style="text-align:center">▼</span>
+        <div class="step"><b>4. UAT/Accesibilidad</b> — Axe + 5 adultos mayores<br><span style="color:var(--muted);font-size:.83rem">WCAG 2.1 AA, teclado, contraste, táctil</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>⚖️ Prioridades</h3>
+      <table>
+        <tr><th>Nivel</th><th>Alcance</th><th>Casos</th></tr>
+        <tr><td><span class="pill p-crit">P1</span></td><td>Login/sesión, RBAC, soft delete, auditoría, SQLi/XSS, endpoints mutantes</td><td style="font-size:.8rem">01,02,04,06,07,08,09,10,11,12,18,19</td></tr>
+        <tr><td><span class="pill p-high">P2</span></td><td>Rendimiento, accesibilidad, contraseñas, pacientes, disponibilidad</td><td style="font-size:.8rem">03,05,13,14,15,17,19</td></tr>
+        <tr><td><span class="pill p-med">P3</span></td><td>Compatibilidad navegadores/dispositivos</td><td style="font-size:.8rem">16</td></tr>
+      </table>
+      <div class="note" style="margin-top:10px"><b>Criterios de salida clave:</b> 100% P1+P2 ejecutados · 0 críticos sin registrar · ≤300 ms en 95% (sin delay) · accesibilidad ≥90%</div>
+    </div>
+
+    <div class="card">
+      <h3>🛠 Herramientas</h3>
+      <table>
+        <tr><th>Herramienta</th><th>Para qué</th></tr>
+        <tr><td>Postman/Newman</td><td>Funcional API + JWT en headers + CI</td></tr>
+        <tr><td>Apache JMeter</td><td>200 hilos, Aggregate Report, prueba A/B del delay</td></tr>
+        <tr><td>OWASP ZAP</td><td>DAST: XSS, SQLi, cabeceras, cookies</td></tr>
+        <tr><td>Axe/Lighthouse</td><td>WCAG 2.1 AA automatizado</td></tr>
+        <tr><td>Jest+Supertest</td><td>Unitarias/integración (a incorporar)</td></tr>
+        <tr><td>psql</td><td>Verificar soft delete y tabla auditoria</td></tr>
+        <tr><td>curl/SSL Labs</td><td>TLS y cabeceras de seguridad</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>🧮 Métricas con meta numérica</h3>
+      <table>
+        <tr><th>Métrica</th><th>Meta</th></tr>
+        <tr><td>Cobertura casos P1+P2</td><td class="ok">100%</td></tr>
+        <tr><td>Tasa de aprobación</td><td class="ok">≥95%</td></tr>
+        <tr><td>Latencia p95 (sin delay)</td><td class="ok">&lt;300 ms</td></tr>
+        <tr><td>Errores HTTP bajo carga</td><td class="ok">0%</td></tr>
+        <tr><td>Score accesibilidad</td><td class="ok">≥90%, 0 críticas</td></tr>
+        <tr><td>Uptime mensual</td><td class="ok">≥99.5%</td></tr>
+        <tr><td>Trazabilidad ERS</td><td class="ok">100% (28/28)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h2>Los 19 casos — resumen rápido</h2>
+  <table>
+    <tr><th>CP</th><th>Nombre</th><th>Pide</th><th>Se espera</th></tr>
+    <tr><td>01</td><td>Login + JWT</td><td>RF-1.1</td><td class="warn">⚠️ falla si no hay bcrypt</td></tr>
+    <tr><td>02</td><td>Refresh/expiración</td><td>RF-1.2</td><td class="bad">❌ no existe endpoint</td></tr>
+    <tr><td>03</td><td>Política de contraseñas</td><td>NFR-SEG-2</td><td class="bad">❌ código exige solo min 6</td></tr>
+    <tr><td>04</td><td>Examen + PDF</td><td>RF-3.1/4.3/4.4</td><td class="warn">⚠️ OK pero delay 5 s</td></tr>
+    <tr><td>05</td><td>CRUD pacientes</td><td>RF-2.x</td><td class="ok">✅ mayormente OK</td></tr>
+    <tr><td>06</td><td>Paciente solo lo propio</td><td>RB-1</td><td class="ok">✅ OK en exámenes/docs</td></tr>
+    <tr><td>07</td><td>Sin mutación sin rol</td><td>RB-2/3</td><td class="bad">❌ escaladas H-02/10</td></tr>
+    <tr><td>08</td><td>Soft delete + auditoría</td><td>RF-3.3/5.1</td><td class="bad">❌ delete físico + sin IP</td></tr>
+    <tr><td>09</td><td>Auditoría inmutable</td><td>RF-5.1</td><td class="bad">❌ sin REVOKE, FK SET NULL</td></tr>
+    <tr><td>10</td><td>SQLi en login</td><td>NFR-SEG-5</td><td class="ok">✅ queries parametrizadas</td></tr>
+    <tr><td>11</td><td>XSS en formularios</td><td>NFR-SEG-5</td><td class="warn">⚠️ React ayuda, falta CSP</td></tr>
+    <tr><td>12</td><td>TLS + cabeceras</td><td>NFR-SEG-1</td><td class="bad">❌ sin helmet, CORS abierto</td></tr>
+    <tr><td>13</td><td>200 usuarios (A/B)</td><td>NFR-PERF-1/3</td><td class="bad">❌ delay 5 s garantiza fallo</td></tr>
+    <tr><td>14</td><td>SPA &lt;2 s y adjuntos ≤10 s</td><td>NFR-PERF-2/RF-4</td><td class="warn">⚠️ medir con/sin delay</td></tr>
+    <tr><td>15</td><td>UAT adultos mayores</td><td>NFR-USAB</td><td class="ok">✅ con panel de 5</td></tr>
+    <tr><td>16</td><td>Compatibilidad</td><td>NFR-COMPAT</td><td class="ok">✅ Tailwind responsivo</td></tr>
+    <tr><td>17</td><td>Uptime + backups</td><td>NFR-DIS</td><td class="warn">⚠️ revisar volumen uploads</td></tr>
+    <tr><td>18</td><td>Mutaciones sin token</td><td>NFR-SEG-4</td><td class="bad">❌ H-02/03/04/05/11</td></tr>
+    <tr><td>19</td><td>Disclosure Swagger/errores/.env</td><td>NFR-SEG-1/5</td><td class="bad">❌ err.message + .env en ZIP</td></tr>
+  </table>
+</section>
+
+<!-- ==================== 6. TRAZABILIDAD ==================== -->
+<section id="t-traza">
+  <h2>Matriz de trazabilidad (IE5)</h2>
+  <p style="color:var(--muted);font-size:.9rem">Haz clic en una fila para ver el detalle del cruce. <b>28/28 ID = 100% de cobertura.</b></p>
+
+  <div class="card" style="text-align:center">
+    <div style="font-size:2.4rem;font-weight:800;color:var(--teal)">28 / 28</div>
+    <div style="color:var(--muted);font-size:.9rem">ID del ERS con ≥1 caso de prueba asignado</div>
+    <div class="bar" style="max-width:420px;margin:10px auto"><i style="width:100%"></i></div>
+  </div>
+
+  <table>
+    <tr><th>ID ERS</th><th>Tipo</th><th>Prueba</th><th>Control legal</th><th>Casos</th></tr>
+    <tr><td>RF-1.1 Login</td><td>Funcional</td><td>Funcional+Seguridad</td><td>NFR-SEG-2/9 · bcrypt</td><td>CP-01, 03, 10</td></tr>
+    <tr><td>RF-1.2 Refresh</td><td>Funcional</td><td>Funcional+Seguridad</td><td>NFR-SEG-9</td><td>CP-02</td></tr>
+    <tr><td>RF-2.1 a 2.7</td><td>Funcional</td><td>Funcional+RBAC</td><td>Ley 19.628</td><td>CP-05, 18</td></tr>
+    <tr><td>RF-3.1/3.2</td><td>Funcional</td><td>Funcional</td><td>Ley 20.584</td><td>CP-04, 07</td></tr>
+    <tr><td>RF-3.3 Soft delete</td><td>Funcional</td><td>Integridad/Auditoría</td><td>Modal + soft delete</td><td>CP-08</td></tr>
+    <tr><td>RF-4.1/4.2</td><td>Funcional</td><td>Funcional+RBAC</td><td>Ley 20.584</td><td>CP-06, 15</td></tr>
+    <tr><td>RF-4.3/4.4</td><td>Funcional</td><td>Almacenamiento</td><td>Adjuntos PDF</td><td>CP-04, 14</td></tr>
+    <tr><td>RF-5.1 Auditoría</td><td>Funcional</td><td>Auditoría</td><td>Log inmutable+IP</td><td>CP-08, 09</td></tr>
+    <tr><td>NFR-SEG-1</td><td>No Func.</td><td>DAST</td><td>TLS 1.2+ · OWASP A05</td><td>CP-12, 19</td></tr>
+    <tr><td>NFR-SEG-2</td><td>No Func.</td><td>Seguridad</td><td>OWASP A07</td><td>CP-01, 03, 10</td></tr>
+    <tr><td>NFR-SEG-3</td><td>No Func.</td><td>Infra</td><td>Datos en reposo</td><td>CP-14, 17</td></tr>
+    <tr><td>NFR-SEG-4</td><td>No Func.</td><td>RBAC</td><td>RB-1/2/3 · Ley 20.584</td><td>CP-06, 07, 18</td></tr>
+    <tr><td>NFR-SEG-5</td><td>No Func.</td><td>DAST/SAST</td><td>OWASP A03</td><td>CP-10, 11, 12</td></tr>
+    <tr><td>NFR-SEG-7</td><td>No Func.</td><td>Operación</td><td>Backups</td><td>CP-17</td></tr>
+    <tr><td>NFR-SEG-9</td><td>No Func.</td><td>Seguridad</td><td>OWASP A07</td><td>CP-01, 02</td></tr>
+    <tr><td>NFR-PERF-1/3</td><td>No Func.</td><td>Carga</td><td>&lt;300 ms · 200 usuarios</td><td>CP-13</td></tr>
+    <tr><td>NFR-PERF-2</td><td>No Func.</td><td>Rendimiento</td><td>Lighthouse móvil</td><td>CP-14</td></tr>
+    <tr><td>NFR-USAB-1/4</td><td>No Func.</td><td>Usabilidad</td><td>WCAG 2.1 AA</td><td>CP-15</td></tr>
+    <tr><td>NFR-COMPAT-1/2</td><td>No Func.</td><td>Compatibilidad</td><td>Navegadores</td><td>CP-16</td></tr>
+    <tr><td>NFR-DIS-1/2</td><td>No Func.</td><td>Disponibilidad</td><td>99.5% uptime</td><td>CP-17</td></tr>
+    <tr><td>RB-1</td><td>Regla negocio</td><td>RBAC</td><td>Ley 20.584</td><td>CP-06</td></tr>
+    <tr><td>RB-2</td><td>Regla negocio</td><td>RBAC</td><td>Ley 19.628</td><td>CP-07, 18</td></tr>
+    <tr><td>RB-3</td><td>Regla negocio</td><td>RBAC</td><td>Ley 20.584</td><td>CP-04, 07</td></tr>
+  </table>
+
+  <div class="note teal"><b>Cómo se arma:</b> 11 RF + 14 NFR + 3 RB = <b>28 IDs</b> → cada uno con tipo de prueba + control legal + al menos 1 CP. Si un ID no tiene CP = pierdes trazabilidad (IE5).</div>
+</section>
+
+<!-- ==================== 7. FLASHCARDS ==================== -->
+<section id="t-cards">
+  <h2>Flashcards 🃏</h2>
+  <p style="color:var(--muted);font-size:.9rem">Haz clic en la tarjeta para girarla. <span id="cardCount">0 / 16</span> vistas</p>
+
+  <div class="grid g3" id="cardGrid">
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué pide NFR-SEG-2?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Hashing <b>bcrypt</b> con sal aleatoria y costo configurable. Política de contraseña ≥12 caracteres con mayúsculas, minúsculas, números y símbolos.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué exige RF-3.3?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>Soft delete</b>: nunca <span class="kbd">DELETE FROM</span>; marcar <span class="kbd">eliminado=true</span> con modal de confirmación previo en la UI.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué debe registrar RF-5.1?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Log inmutable con: <b>usuario, acción, recurso afectado, timestamp UTC e IP</b>. Escritura atómica y tabla append-only (REVOKE UPDATE/DELETE).</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué dice la Ley 20.584?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Derechos del paciente en salud: <b>acceso a su propia ficha</b> (RF-4.1/4.2), <b>reserva clínica</b> frente a terceros (RB-1), edición solo del profesional tratante (RB-3).</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué dice la Ley 19.628?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Protección de datos personales: RUT, nombres y diagnósticos son <b>sensibles</b>. Principios de <b>finalidad y confidencialidad</b>; solo personal autorizado los procesa.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>Metas de NFR-PERF</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">API &lt;<b>300 ms</b> (PERF-1) · carga inicial &lt;<b>2 s</b> (PERF-2) · <b>200 usuarios</b> concurrentes (PERF-3) · adjuntos ≤<b>10 s</b> (RF-4).</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué es el IE5 / trazabilidad?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Cruce completo <b>ERS → criterio → caso de prueba → evidencia</b>. Meta: 100% de los ID con ≥1 caso, sin huérfanos en ninguna dirección.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>ISO/IEC 25010 — 4 ejes del plan</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>Usabilidad</b> (WCAG 2.1 AA) · <b>Rendimiento</b> (&lt;300 ms) · <b>Disponibilidad</b> (99.5%) · <b>Mantenibilidad</b> (capas + Swagger).</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>Códigos HTTP que debes manejar</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">200 OK · 201 Created · 400 validación · 401 sin/expirado token · <b>403 rol insuficiente</b> · 404 no existe · 500 interno <b>sin stack trace</b>.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué es RB-1, RB-2, RB-3?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>RB-1:</b> paciente solo ve lo suyo. <b>RB-2:</b> mutaciones con rol autorizado. <b>RB-3:</b> crear/editar exámenes solo médico/admin.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>El hallazgo más grave del código</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>H-03:</b> <span class="kbd">DELETE /usuarios</span> ejecuta el borrado <b>antes</b> de verificar token → cualquiera sin login borra cuentas. (Junto a H-01 sin bcrypt y H-05 ficha pública por RUT.)</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Por qué falla CP-13 (carga)?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>delayMiddleware(5000)</b> fuerza 5 s por petición en rutas clave → la meta de &lt;300 ms es imposible. Se prueba en <b>A/B</b>: con delay vs sin delay.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>¿Qué es OWASP A01?</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>Broken Access Control</b>: accesos no autorizados. Aquí: H-02 (crea admins), H-03 (DELETE sin auth), H-04 (roles sin auth), H-05 (RUT público), H-10, H-11.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>Herramienta → fase del plan</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">Jest/Supertest=fase 1 · Postman/Newman=fase 2 · <b>JMeter + ZAP</b>=fase 3 · <b>Axe + panel 5 adultos</b>=fase 4.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>Criterios de SALIDA del plan</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans">100% P1/P2 aprobados · <b>0 críticos/altos</b> sin registrar · ≤300 ms en 95% · accesibilidad ≥90% · evidencia completa.</div></div>
+    </div></div>
+
+    <div class="flip" onclick="flipCard(this)"><div class="flip-in">
+      <div class="face"><b>Qué SÍ está bien hecho</b><div class="hint">click para ver →</div></div>
+      <div class="face back"><div class="ans"><b>Anti-SQLi</b> (queries $1) · <b>RBAC de lectura</b> de exámenes/docs · validaciones yup · rut.js · Swagger · arquitectura desacoplada Docker.</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ==================== 8. QUIZ ==================== -->
+<section id="t-quiz">
+  <h2>Quiz de repaso 📝</h2>
+  <p style="color:var(--muted);font-size:.9rem">8 preguntas tipo examen. Selecciona una opción: recibirás feedback inmediato.</p>
+
+  <div class="score" id="quizScore">0 / 8</div>
+
+  <div class="q" data-a="1">
+    <div class="qt">1. El ERS exige soft delete (RF-3.3). ¿Qué hace el código real?</div>
+    <button class="opt" data-i="0">Marca <span class="kbd">eliminado=true</span> como pide el ERS</button>
+    <button class="opt" data-i="1">Ejecuta <span class="kbd">DELETE FROM</span> físico (con CASCADE)</button>
+    <button class="opt" data-i="0">No existe endpoint de borrado</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <div class="qt">2. ¿Cuál es la meta de latencia de la API (NFR-PERF-1) y por qué el código no la cumple?</div>
+    <button class="opt" data-i="0">2 s — porque PostgreSQL es lento</button>
+    <button class="opt" data-i="0">10 s — porque sube archivos pesados</button>
+    <button class="opt" data-i="2">&lt;300 ms — pero <span class="kbd">delayMiddleware(5000)</span> impone 5 s mínimo</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="0">
+    <div class="qt">3. Un paciente llama a <span class="kbd">GET /pacientes/buscar/rut/12.345.678-9</span> sin token. ¿Qué ocurre en el código actual?</div>
+    <button class="opt" data-i="0">Recibe la ficha completa (alergias, crónicos…) — endpoint público</button>
+    <button class="opt" data-i="1">Recibe 401 porque exige JWT</button>
+    <button class="opt" data-i="2">Recibe 403 porque es un RUT de otro paciente</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <div class="qt">4. ¿Cuántos IDs del ERS deben quedar cubiertos por la matriz de trazabilidad?</div>
+    <button class="opt" data-i="0">Solo los funcionales (RF)</button>
+    <button class="opt" data-i="1">Todos: 11 RF + 14 NFR + 3 RB = 28/28 (100%)</button>
+    <button class="opt" data-i="2">Los que aparezcan en los casos que hayan quedado bonitos</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <div class="qt">5. ¿Qué codigos HTTP corresponden a "token válido pero rol insuficiente"?</div>
+    <button class="opt" data-i="0">401 Unauthorized</button>
+    <button class="opt" data-i="1">404 Not Found</button>
+    <button class="opt" data-i="2">403 Forbidden</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="0">
+    <div class="qt">6. ¿Qué dice la Ley 20.584 que el sistema debe garantizar?</div>
+    <button class="opt" data-i="0">Reserva de la ficha clínica: el paciente accede solo a lo suyo y nadie ve registros de terceros</button>
+    <button class="opt" data-i="1">Cifrado obligatorio de contraseñas con bcrypt</button>
+    <button class="opt" data-i="2">Que el uptime sea del 99.5% mensual</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="1">
+    <div class="qt">7. En el código, ¿qué control de seguridad SÍ está bien implementado?</div>
+    <button class="opt" data-i="0">Hashing de contraseñas con bcrypt</button>
+    <button class="opt" data-i="1">Consultas SQL parametrizadas con <span class="kbd">$1</span> (anti-SQLi)</button>
+    <button class="opt" data-i="2">Refresh token en cookie HttpOnly</button>
+    <div class="fb"></div>
+  </div>
+
+  <div class="q" data-a="2">
+    <div class="qt">8. Un caso de prueba se considera bien diseñado cuando…</div>
+    <button class="opt" data-i="0">Dice "verificar que el sistema funcione correctamente"</button>
+    <button class="opt" data-i="1">Solo usa la interfaz gráfica</button>
+    <button class="opt" data-i="2">Tiene ID, requerimiento, pasos numerados, resultado esperado y criterios numéricos con endpoint real</button>
+    <div class="fb"></div>
+  </div>
+</section>
+
+<!-- ==================== 9. CHECKLIST ==================== -->
+<section id="t-check">
+  <h2>Checklist previa a entregar 📋</h2>
+  <p style="color:var(--muted);font-size:.9rem">Tu progreso se guarda en este navegador. Marca cada punto cuando esté listo.</p>
+
+  <div class="card">
+    <h3>Informe de criterios (Sección 2)</h3>
+    <div class="check"><input type="checkbox" id="c1"><label for="c1">ISO/IEC 25010 con 4 ejes y IDs NFR (USAB, PERF, DIS, Mantenibilidad)</label></div>
+    <div class="check"><input type="checkbox" id="c2"><label for="c2">OWASP Top 10 referenciado (SQLi, XSS, CSRF, A01…)</label></div>
+    <div class="check"><input type="checkbox" id="c3"><label for="c3">Ley 19.628 (datos sensibles) y Ley 20.584 (reserva clínica) explicadas con sus RF/RB</label></div>
+    <div class="check"><input type="checkbox" id="c4"><label for="c4">Matriz RBAC por endpoint como oracle de pruebas</label></div>
+  </div>
+
+  <div class="card">
+    <h3>Plan de pruebas (Sección 3)</h3>
+    <div class="check"><input type="checkbox" id="c5"><label for="c5">Estrategia en 4 fases con diagrama</label></div>
+    <div class="check"><input type="checkbox" id="c6"><label for="c6">Prioridades P1/P2/P3 asignadas a casos concretos</label></div>
+    <div class="check"><input type="checkbox" id="c7"><label for="c7">Análisis de riesgos de prueba (probabilidad × impacto)</label></div>
+    <div class="check"><input type="checkbox" id="c8"><label for="c8">Criterios de entrada y salida cuantitativos</label></div>
+    <div class="check"><input type="checkbox" id="c9"><label for="c9">Tipos de prueba con su requerimiento asociado</label></div>
+    <div class="check"><input type="checkbox" id="c10"><label for="c10">Criterios transversales (códigos HTTP, soft delete, auditoría, latencia)</label></div>
+    <div class="check"><input type="checkbox" id="c11"><label for="c11">Métricas con meta numérica (≥7 métricas)</label></div>
+    <div class="check"><input type="checkbox" id="c12"><label for="c12">Herramientas + recursos humanos + recursos técnicos + ambiente QA</label></div>
+    <div class="check"><input type="checkbox" id="c13"><label for="c13">Protocolo de evidencia por tipo de prueba</label></div>
+  </div>
+
+  <div class="card">
+    <h3>Casos de prueba (Sección 4)</h3>
+    <div class="check"><input type="checkbox" id="c14"><label for="c14">Formato uniforme: ID, nombre, req, prioridad, objetivo, precondiciones, datos, pasos, esperado, criterios, tipo, evidencia</label></div>
+    <div class="check"><input type="checkbox" id="c15"><label for="c15">Endpoints REALES del código (no rutas inventadas)</label></div>
+    <div class="check"><input type="checkbox" id="c16"><label for="c16">Cobertura de todos los dominios: auth, RBAC, auditoría, SQLi, XSS, TLS, carga, usabilidad, compat, disponibilidad</label></div>
+    <div class="check"><input type="checkbox" id="c17"><label for="c17">Casos destructivos aislados (DELETE sin token, escalada de rol)</label></div>
+    <div class="check"><input type="checkbox" id="c18"><label for="c18">Criterios de aceptación numéricos (ms, %, códigos HTTP)</label></div>
+  </div>
+
+  <div class="card">
+    <h3>Entrega final</h3>
+    <div class="check"><input type="checkbox" id="c19"><label for="c19">Matriz de trazabilidad 100% (sin ID huérfano ni caso sin req)</label></div>
+    <div class="check"><input type="checkbox" id="c20"><label for="c20">Informe de hallazgos con evidencia archivo:línea</label></div>
+    <div class="check"><input type="checkbox" id="c21"><label for="c21">Presentación con arquitectura, plan, hallazgos y conclusión</label></div>
+    <div class="check"><input type="checkbox" id="c22"><label for="c22">Índice sincronizado con la numeración real del documento</label></div>
+    <div class="check"><input type="checkbox" id="c23"><label for="c23">Cero afirmaciones sin respaldo ("cumple" → siempre con evidencia)</label></div>
+  </div>
+
+  <div class="card" style="text-align:center">
+    <h3>Progreso total</h3>
+    <div class="bar" style="max-width:500px;margin:10px auto"><i id="progBar" style="width:0"></i></div>
+    <div id="progTxt" style="font-size:1.4rem;font-weight:800;color:var(--teal)">0 / 23</div>
+    <button onclick="resetCheck()" style="margin-top:12px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer">Reiniciar checklist</button>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Guía interactiva de estudio · ISY1102 Seguridad y Calidad · Cuidarte+ / CreaLab SpA · Documentos: <b>hallazgos-seguridad</b> · <b>informe-seguridad-calidad</b> · <b>presentacion-cuidarte</b>
+</footer>
+
+<script>
+// Tabs
+document.getElementById('nav').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('main section').forEach(s=>s.classList.remove('show'));
+  e.target.classList.add('active');
+  document.getElementById(e.target.dataset.t).classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+// Hallazgos: toggle + filtros
+document.querySelectorAll('.find').forEach(f=>{
+  f.addEventListener('click',()=>f.classList.toggle('open'));
+});
+document.getElementById('fFilters').addEventListener('click',e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  document.querySelectorAll('#fFilters button').forEach(b=>b.classList.remove('active'));
+  e.target.classList.add('active');
+  const f=e.target.dataset.f;
+  document.querySelectorAll('.find').forEach(el=>{
+    const sev=el.dataset.sev, cat=el.dataset.cat;
+    const show = f==='all' || f===sev || (f==='owasp'&&cat==='a01');
+    el.style.display=show?'':'none';
+  });
+});
+
+// Flashcards
+let seen=new Set();
+function flipCard(el){
+  el.classList.toggle('on');
+  const all=[...document.querySelectorAll('.flip')];
+  seen=new Set(all.filter(x=>x.classList.contains('on')).map(x=>x));
+  document.getElementById('cardCount').textContent=seen.size+' / '+all.length;
+}
+
+// Quiz
+let answered=new Set();
+document.querySelectorAll('.q').forEach(q=>{
+  const correct=+q.dataset.a;
+  const fb=q.querySelector('.fb');
+  q.querySelectorAll('.opt').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(q.dataset.done) return;
+      q.dataset.done=1;
+      const i=+btn.dataset.i;
+      const good=i===correct;
+      q.querySelectorAll('.opt').forEach((b,idx)=>{
+        if(idx===correct) b.classList.add('correct');
+        else if(idx===i&&!good) b.classList.add('wrong');
+      });
+      fb.classList.add('show', good?'good':'bad');
+      fb.innerHTML = good
+        ? '✅ ¡Correcto! Revisado.'
+        : '❌ Incorrecto. La respuesta correcta está resaltada en verde.';
+      answered.add(q);
+      document.getElementById('quizScore').textContent=answered.size+' / 8';
+    });
+  });
+});
+
+// Checklist con localStorage
+function upProg(){
+  const boxes=[...document.querySelectorAll('.check input')];
+  const n=boxes.filter(b=>b.checked).length;
+  document.getElementById('progBar').style.width=(n/boxes.length*100)+'%';
+  document.getElementById('progTxt').textContent=n+' / '+boxes.length;
+  boxes.forEach(b=>{
+    const lab=b.closest('.check').querySelector('label');
+    lab.classList.toggle('done',b.checked);
+  });
+  localStorage.setItem('cuidarte-check',JSON.stringify(boxes.map(b=>b.checked)));
+}
+document.querySelectorAll('.check input').forEach(b=>{
+  b.addEventListener('change',upProg);
+});
+try{
+  const saved=JSON.parse(localStorage.getItem('cuidarte-check')||'[]');
+  document.querySelectorAll('.check input').forEach((b,i)=>{ if(saved[i]) b.checked=true; });
+}catch(e){}
+function resetCheck(){
+  document.querySelectorAll('.check input').forEach(b=>b.checked=false);
+  upProg();
+}
+upProg();
+</script>
+</body>
+</html>
