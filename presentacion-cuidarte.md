@@ -170,9 +170,8 @@ Entregables:
 | H-10 | Paciente puede reasignar `usuario_id` de su ficha | RB-1 |
 | H-11 | Médico puede autopromoverse a admin | RB-2, RB-3 |
 | H-12 | Auditoría sin IP/recurso, no atómica, editable | RF-5.1 |
-| **H-13** | **`delayMiddleware(5000)`** → meta <300 ms imposible | NFR-PERF-1/3 |
 
-Medios: H-14 sin helmet/CORS abierto · H-15 err. PG al cliente · H-16 sin rate limit · H-17 adjuntos sin cifrar
+Medios: **H-13** `delayMiddleware(5000)` · H-14 sin helmet/CORS abierto · H-15 err. PG al cliente · H-16 sin rate limit · H-17 adjuntos sin cifrar
 
 ---
 

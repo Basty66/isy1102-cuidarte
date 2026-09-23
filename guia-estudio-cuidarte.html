@@ -422,8 +422,8 @@
       </div>
     </div>
     <!-- H-13 -->
-    <div class="card find" data-sev="high" data-cat="perf">
-      <div class="ftitle"><span><span class="pill p-high">ALTO (calidad)</span> H-13 · delay(5000) rompe NFR-PERF-1</span><span class="floc">delay.js:5 · examenes.js:46+</span></div>
+    <div class="card find" data-sev="med" data-cat="perf">
+      <div class="ftitle"><span><span class="pill p-med">MEDIO</span> H-13 · delay(5000) rompe NFR-PERF-1</span><span class="floc">delay.js:5 · examenes.js:46+</span></div>
       <div class="fdetail">
         <p><b>Qué pasa:</b> retardo artificial de 5 s en examenes, pacientes y documentos sin comprobar NODE_ENV → la meta de &lt;300 ms es imposible y 200 usuarios colapsarían.</p>
         <p><b>ERS:</b> NFR-PERF-1, NFR-PERF-3, RF-4 · <b>Detecta:</b> CP-13 (prueba A/B), CP-04, CP-14</p>

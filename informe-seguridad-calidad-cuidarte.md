@@ -1,11 +1,11 @@
 # Plan de Pruebas — Sistema de Exámenes Médicos Cuidarte+
 
 - **Asignatura:** ISY1102 – Seguridad y Calidad en el Desarrollo de Software
-- **Sección:** Sección XX
+- **Sección:** Sección XX *(completar con la sección del curso)*
 - **Proyecto:** Sistema de Exámenes Médicos Cuidarte+
 - **Organización:** CreaLab SpA – Departamento de Desarrollo
-- **Documento Base:** ERS v1.1 + Código fuente `CodigoFuenteB.zip` (análisis estático, sin modificación)
-- **Integrantes:** Nombre Apellido Alumno 1 · Nombre Apellido Alumno 2 · Nombre Apellido Alumno 3
+- **Documento Base:** ERS v1.1 + Código fuente `CodigoFuenteB.zip` (análisis estático, sin modificación). *El archivo ERS no viene en el paquete del encargo; la **§5 · Matriz de trazabilidad** lista los **28 IDs** (11 RF + 14 NFR + 3 RB) usados como anexo de referencias.*
+- **Integrantes:** Nombre Apellido Alumno 1 · Nombre Apellido Alumno 2 · Nombre Apellido Alumno 3 *(completar)*
 
 ## Índice
 
@@ -274,7 +274,7 @@ Celdas ✖ ⇒ `403 {"error":"No autorizado"}`; sin token ⇒ `401`. Esta tabla 
 
 ## 4. Diseño de casos de prueba (endpoints reales)
 
-Host de pruebas: `http://localhost:4000` (dev) o `http://localhost:4444` (Docker). Formato uniforme: ID · Nombre · Requerimiento · Prioridad · Objetivo · Precondiciones · Datos · Pasos · Resultado esperado · Criterios · Tipo · Evidencia.
+Host de pruebas: `http://localhost:4444` (Docker). Formato uniforme: ID · Nombre · Requerimiento · Prioridad · Objetivo · Precondiciones · Datos · Pasos · Resultado esperado · Criterios · Tipo · Evidencia.
 
 ### CP-01 · Autenticación y emisión de JWT
 
@@ -284,7 +284,7 @@ Host de pruebas: `http://localhost:4000` (dev) o `http://localhost:4444` (Docker
 | **Requerimiento** | RF-1.1, NFR-SEG-2, NFR-SEG-9 · P1 |
 | **Objetivo** | Validar autenticación con credenciales válidas y emisión de token firmado. |
 | **Precondiciones** | Usuario existe en `usuarios` (dump); API y BD operativas en QA. |
-| **Datos** | `POST http://localhost:4000/autenticacion/login` · Body: `{"nombre_usuario": "dr_rojas", "password": "<clave sintética del dump>"}` |
+| **Datos** | `POST http://localhost:4444/autenticacion/login` · Body: `{"nombre_usuario": "medico", "password": "medico"}` (dump `dump-cuidarteplus.sql`; también `admin/admin`, `paciente/paciente`) |
 | **Pasos** | 1) Login vía UI (`/login`) o Postman. 2) Verificar respuesta `{"token": "..."}`. 3) Decodificar payload JWT. 4) Usar token en `GET /examenes`. 5) Login con clave incorrecta. 6) Revisar que el log del servidor no contenga la contraseña. |
 | **Esperado** | `200 {"token"}`; payload con `usuarioId`, `rolNombre`, `exp`; paso 4 ⇒ `200`; paso 5 ⇒ `401 {"error":"Credenciales inválidas"}`. |
 | **Criterios** | 1) Sesión iniciada sin errores. 2) JWT firmado (HS256), `exp` ≤2 h según código actual — **si el ERS exige ≤15 min, registrar discrepancia**. 3) Latencia <300 ms (este endpoint **no** tiene `delayMiddleware`). 4) Contraseña no aparece en logs (**si aparece en BD en claro → hallazgo H-01**). |
@@ -430,7 +430,7 @@ Host de pruebas: `http://localhost:4000` (dev) o `http://localhost:4444` (Docker
 | **ID/Nombre** | CP-12 · TLS 1.2+ y cabeceras HTTP |
 | **Requerimiento** | NFR-SEG-1, OWASP A05 · P1 |
 | **Objetivo** | Cifrado en tránsito y cabeceras mínimas. |
-| **Datos** | `curl -I http://localhost:4000/examenes` · `curl -I https://<qa>/examenes` · SSL Labs · `GET /` y `GET /openapi.json`. |
+| **Datos** | `curl -I http://localhost:4444/examenes` · `curl -I https://<qa>/examenes` · SSL Labs · `GET /` y `GET /openapi.json`. |
 | **Pasos** | 1) HTTP ⇒ redirect 301. 2) HTTPS ⇒ TLS ≥1.2. 3) Inspeccionar `Strict-Transport-Security`, `X-Content-Type-Options`, `X-Frame-Options`, `Content-Security-Policy`, `Referrer-Policy`. 4) Revisar CORS: respuesta a `Origin: https://evil.example`. |
 | **Esperado (ERS)** | Redirect, TLS 1.2/1.3, todas las cabeceras, CORS solo con orígenes de la allowlist. |
 | **Criterios** | 1) Sin HTTP aceptado. 2) 100% cabeceras (**hoy: ausentes ⇒ H-14; `cors()` abierto ⇒ H-14**). 3) TLS <1.2 deshabilitado. |

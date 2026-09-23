@@ -55,7 +55,15 @@ docker compose -f CodigoFuenteB\CodigoFuenteB\docker-compose.yml `
 ## Qué se evidencia
 
 Cada `pm.test` valida el **ERS** (esperado). Si el código vulnerable falla,
-el test **falla** = hallazgo H-01…H-15 documentado en
+el test **falla** = hallazgo H-01…H-17 documentado en
 `hallazgos-seguridad-cuidarte.md`.
+
+Corridas y hallazgos confirmados en runtime: ver `informe-ejecucion-pruebas.md`
+y `reports/results.json`.
+
+No automatizados en Newman (evidencia manual/estructural): **CP-15** (UAT +
+Axe), **CP-16** (compatibilidad), **CP-17** (uptime 30 días), **H-16**
+(rate limit — requiere prueba de fuerza bruta), **H-17** (firma binaria de
+adjuntos — requiere inspección de archivos).
 
 > ⚠️ Entorno aislado: el backend es intencionalmente vulnerable.

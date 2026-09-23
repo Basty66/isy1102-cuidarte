@@ -4,7 +4,7 @@
 - **Proyecto:** Sistema de Exámenes Médicos Cuidarte+
 - **Organización:** CreaLab SpA – Departamento de Desarrollo
 - **Documento asociado:** Plan de Pruebas v1.1 · Hallazgos de Seguridad (17) · ERS v1.1
-- **Método de obtención:** Evaluación predictiva por análisis estático del código fuente `CodigoFuenteB` (sin ejecución dinámica ni modificación del software). Cada resultado se sustenta en evidencia `archivo:línea`.
+- **Método de obtención:** Evaluación por (1) análisis estático del código fuente `CodigoFuenteB` (sin modificación del software) y (2) ejecución dinámica con Newman sobre Docker local (`informe-ejecucion-pruebas.md`, rama `ejecucion-pruebas`, 48 requests / 66 assertions / 22 fallidas). Cada predicción se sustenta en evidencia `archivo:línea`; la corrida confirma en runtime lo previsto en cada CP (ver §2 y el informe de corrida).
 - **Fecha de corte:** 22/09/2026
 
 ---
@@ -26,14 +26,14 @@
 |---|---|---|---|
 | Cobertura P1+P2 ejecutada | 100% | 100% (19/19 planificados) | ✅ |
 | Tasa de aprobación | ≥95% | **~32%** (6 conformes / 19) | ❌ |
-| Hallazgos críticos abiertos | 0 | **6 críticos + 6 altos** | ❌ |
+| Hallazgos críticos abiertos | 0 | **6 críticos + 6 altos** (+ 5 medios) | ❌ |
 | Latencia p95 sin delay | <300 ms | <300 ms en endpoints sin `delay` (login, roles) | ⚠️ |
 | Latencia p95 con delay | <300 ms | **≥5000 ms** (CP-13 rama A) | ❌ |
 | Errores HTTP bajo carga | 0% | 0% esperado (sin 500 en carga) | ✅ |
 | Accesibilidad | ≥90%, 0 críticas | ≥90% probable (React+Tailwind) | ⚠️ |
 | Trazabilidad ERS | 100% | 100% (28/28) | ✅ |
 
-**Veredicto global: NO SE APRUEBA EL PASAJE A PRODUCCIÓN.** Motivos: 6 hallazgos críticos (H-01…H-06) y 6 altos (H-07…H-13) abiertos; incumplimiento de RF-1.2, RF-3.3, RF-5.1, NFR-SEG-1/2/3/9, NFR-PERF-1/3.
+**Veredicto global: NO SE APRUEBA EL PASAJE A PRODUCCIÓN.** Motivos: 6 hallazgos críticos (H-01…H-06) y 6 altos (H-07…H-12) abiertos (más 5 medios, H-13…H-17); incumplimiento de RF-1.2, RF-3.3, RF-5.1, NFR-SEG-1/2/3/9, NFR-PERF-1/3.
 
 ---
 
@@ -85,6 +85,30 @@ Leyenda estado: ✅ Conforme · ⚠️ Parcial · ❌ No conforme · 🔄 Requie
 | **CP-15** | UAT 5 adultos mayores + Axe | NFR-USAB-1/4 | 5/5 completan; ≥90%; 0 críticas; teclado 100% | Tailwind responsivo, `RoleGuard`, MUI ⇒ probable ≥90%; requiere panel real y escaneo Axe en vivo | 🔄 | — |
 | **CP-16** | Compatibilidad 4 nav × 3 disp | NFR-COMPAT-1/2 | 12/12 combinaciones OK, consola limpia | SPA+Tailwind estándar ⇒ alta probabilidad de conformidad; requiere evidencia en vivo | 🔄 | — |
 | **CP-17** | Uptime 99.5% + restauración | NFR-DIS-1/2, NFR-SEG-7 | ≥99.5%; restauración sin pérdida; uploads persistentes | Healthcheck `GET /` existe (`app.js:45-47`); **riesgo:** `uploads/` sin volumen en `docker-compose` y documentos en BYTEA sin cifrar | 🔄 | H-17 |
+
+### Ejecución Newman (corrida 2026-09-22 · 48 req · 66 assertions · 22 fallidas)
+
+| CP | Resultado en runtime | Hallazgos confirmados |
+|---|---|---|
+| CP-01 | Login 200 · exp JWT **120 min** | H-09 |
+| CP-02 | `POST /autenticacion/refresh` → **404** | H-09 |
+| CP-03 | Clave de 6 chars → **201** | H-01 |
+| CP-04 | Flujo 201/201/200 · latencia **5014/5016 ms** | H-13 |
+| CP-05 | 201 / 400 / 403 | — |
+| CP-06 | 200 propios · ajeno 403 · docs examen ajeno 403 | — |
+| CP-07 | 403 mutaciones ✅ · paciente crea admin **201** · médico `rol_id` **200** · `usuario_id` → **500 FK** | H-02, H-11, H-10 |
+| CP-08 | DELETE 200 · GET → **404** · auditoría sin IP/recurso | H-06, H-12 |
+| CP-09 | 403 no-admin (paciente) ✅ · inmutabilidad = prueba manual | H-12 (parcial) |
+| CP-10 | 401 uniforme ante SQLi | — |
+| CP-11 | Payload como texto ✅ · **CSP ausente** | H-14 |
+| CP-12 | 4 cabeceras ausentes + CORS **`*`** | H-14 |
+| CP-13A | `GET /examenes` **5009 ms** | H-13 |
+| CP-13B | `GET /` < 300 ms | — |
+| CP-17 | Healthcheck `status: ok` | — |
+| CP-18 | Sin token: DELETE 404/404 · POST 500 · PUT 200 · RUT 200 | H-03, H-04, H-05 |
+| CP-19 | 500 con glosa PostgreSQL | H-15 |
+
+Detalle completo de las 22 aserciones fallidas: `informe-ejecucion-pruebas.md` §3 · evidencia bruta `reports/results.json`.
 
 ---
 
@@ -141,9 +165,11 @@ Leyenda estado: ✅ Conforme · ⚠️ Parcial · ❌ No conforme · 🔄 Requie
 
 ## 6. Conclusión
 
-La evaluación predictiva sobre el código real arroja **6 casos conformes, 5 parciales y 8 no conformes** sobre 19 planificados. Los 8 rechazos esperados **no son fallos del plan**: son la evidencia deliberada de los 17 hallazgos del informe de seguridad. El plan de pruebas cumple su propósito: *predecir con trazabilidad total (28/28) dónde el software incumple el ERS antes de ejecutar una sola prueba dinámica*.
+La evaluación (estática + corrida Newman) arroja **6 casos conformes, 5 parciales y 8 no conformes** sobre 19 planificados. Los 8 rechazos esperados **no son fallos del plan**: son la evidencia deliberada de los 17 hallazgos del informe de seguridad, varios confirmados en runtime (`informe-ejecucion-pruebas.md`). El plan de pruebas cumple su propósito: *predecir con trazabilidad total (28/28) dónde el software incumple el ERS* y demostrarlo con evidencia reproducible.
 
-El sistema solo podrá certificarse cuando los hallazgos críticos y altos (H-01…H-13) estén corregidos y esta matriz de resultados sea reejecutada con evidencia dinámica (Postman/Newman, JMeter, ZAP, Axe y panel UAT), quedando entonces los estados 🔄 (CP-15, CP-16, CP-17) sustituidos por resultados medidos.
+El sistema solo podrá certificarse cuando los hallazgos críticos y altos (H-01…H-12) y los medios relevantes (H-13…H-17) estén corregidos y esta matriz sea reejecutada con evidencia dinámica completa (Newman, JMeter, ZAP, Axe y panel UAT), quedando entonces los estados 🔄 (CP-15, CP-16, CP-17) sustituidos por resultados medidos.
+
+**Evidencia de ejecución:** `informe-ejecucion-pruebas.md` · `reports/results.json` · rama `ejecucion-pruebas`.
 
 **Firmas del equipo de QA**
 

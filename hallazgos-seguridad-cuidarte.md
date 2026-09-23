@@ -129,7 +129,7 @@
 - **Detecta:** CP-08, CP-09.
 
 ### H-13 · Latencia artificial de 5 s en endpoints críticos (rompe NFR-PERF-1)
-- **Severidad:** Alta (calidad) · **ERS:** NFR-PERF-1, RF-4
+- **Severidad:** Media (calidad) · **ERS:** NFR-PERF-1, RF-4
 - **Ubicaciones:** `middleware/delay.js:5-10` aplicado en `examenes.js:46,99,330`, `pacientes.js:145`, `documentos.js:66`.
 - **Descripción:** `delayMiddleware(5000)` fuerza 5000 ms antes de procesar. No hay condición `NODE_ENV !== "production"` (a diferencia de lo que asume el análisis estructural).
 - **Impacto:** Meta de <300 ms es **imposible**; cualquier prueba de carga (CP-13) fallará masivamente *por diseño*.

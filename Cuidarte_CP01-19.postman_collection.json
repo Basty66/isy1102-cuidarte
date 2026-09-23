@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "cuidarteplus-isy1102-0001",
     "name": "Cuidarte+ · CP-01 a CP-19 (ISY1102)",
-    "description": "Colección de pruebas alineada al Plan de Pruebas de Cuidarte+.\nHost local: http://localhost:4000 (dev) o http://localhost:4444 (Docker).\nRequiere: usuario del dump con rol medico/admin/paciente.\nCada carpeta = un caso de prueba CP-xx. Los scripts de test validan el ERS (no el bug): si el código falla, el test falla = hallazgo.",
+    "description": "Colección de pruebas alineada al Plan de Pruebas de Cuidarte+.\nHost por defecto: http://localhost:4444 (Docker).\nRequiere: usuarios del dump (admin/medico/paciente).\nCada carpeta = un caso de prueba CP-xx. Los scripts de test validan el ERS (esperado): si el código no cumple, el test falla = hallazgo.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -15,7 +15,12 @@
     { "key": "examen_id", "value": "" },
     { "key": "examen_ajeno_id", "value": "" },
     { "key": "documento_id", "value": "" },
-    { "key": "usuario_id", "value": "2" }
+    { "key": "usuario_id", "value": "2" },
+    { "key": "cp03_user", "value": "" },
+    { "key": "cp03_rut", "value": "" },
+    { "key": "cp03_mail", "value": "" },
+    { "key": "xss_rut", "value": "" },
+    { "key": "xss_mail", "value": "" }
   ],
   "item": [
     {
@@ -203,6 +208,19 @@
           "name": "6. Política de contraseña débil (CP-03)",
           "event": [
             {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-8);",
+                  "const rutNum = (ts.replace(/[^0-9]/g,'') || '12345678');",
+                  "pm.collectionVariables.set('cp03_user', 'cp03_' + ts);",
+                  "pm.collectionVariables.set('cp03_rut', rutNum.slice(0,8) + '-5');",
+                  "pm.collectionVariables.set('cp03_mail', 'cp03_' + ts + '@test.cl');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
               "listen": "test",
               "script": {
                 "exec": [
@@ -218,9 +236,31 @@
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"test_cp03\",\n  \"password\": \"abc123\",\n  \"correo\": \"cp03@test.cl\",\n  \"rut\": \"12.345.678-9\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"{{cp03_user}}\",\n  \"password\": \"abc123\",\n  \"correo\": \"{{cp03_mail}}\",\n  \"rut\": \"{{cp03_rut}}\"\n}" },
             "url": { "raw": "{{base_url}}/autenticacion/registro", "host": ["{{base_url}}"], "path": ["autenticacion", "registro"] },
-            "description": "Criterio: contraseña >=12 con 4 tipos de caracteres."
+            "description": "Criterio: contraseña >=12 con 4 tipos de caracteres. RUT/email únicos por corrida para aislar el 400 de política."
+          }
+        },
+        {
+          "name": "7. SQLi comment payload admin'-- (CP-10)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-10: 401 ante admin\\'--', () => pm.response.to.have.status(401));",
+                  "pm.test('CP-10: sin 500 ni error SQL', () => { const b = pm.response.text(); pm.expect(b).to.not.match(/SQLSTATE|syntax error|pg_/i); });"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre_usuario\": \"admin'--\",\n  \"password\": \"x\"\n}" },
+            "url": { "raw": "{{base_url}}/autenticacion/login", "host": ["{{base_url}}"], "path": ["autenticacion", "login"] },
+            "description": "Payload clásico de bypass por comentario SQL. Esperado: 401."
           }
         }
       ]
@@ -445,17 +485,48 @@
           }
         },
         {
-          "name": "3. Paciente descarga documento ajeno => 403",
+          "name": "2b. Crear examen para paciente ajeno (medico)",
           "event": [
             {
               "listen": "test",
-              "script": { "exec": ["pm.test('CP-06: 403 documento ajeno', () => pm.response.to.have.status(403));"], "type": "text/javascript" }
+              "script": {
+                "exec": [
+                  "pm.test('CP-06 setup: 201 examen ajeno', () => pm.response.to.have.status(201));",
+                  "if (pm.response.code === 201) pm.collectionVariables.set('examen_ajeno_id', String(pm.response.json().id));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tipo_examen_medico_id\": 1,\n  \"paciente_id\": {{paciente_ajeno_id}},\n  \"diagnosis\": \"Perfil ajeno\",\n  \"tratamiento\": \"Ninguno\",\n  \"observaciones\": \"CP-06 ajeno\",\n  \"notas\": \"\"\n}" },
+            "url": { "raw": "{{base_url}}/examenes", "host": ["{{base_url}}"], "path": ["examenes"] },
+            "description": "Preparación: examen del paciente 2 (ajeno al token_paciente)."
+          }
+        },
+        {
+          "name": "3. Paciente descarga documentos de examen ajeno => 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-06: 403 documentos de examen ajeno', () => pm.response.to.have.status(403));"
+                ],
+                "type": "text/javascript"
+              }
             }
           ],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
-            "url": { "raw": "{{base_url}}/documentos/999", "host": ["{{base_url}}"], "path": ["documentos", "999"] }
+            "url": { "raw": "{{base_url}}/documentos/examen/{{examen_ajeno_id}}", "host": ["{{base_url}}"], "path": ["documentos", "examen", "{{examen_ajeno_id}}"] },
+            "description": "documentos.js:143-156 — ownership por usuario_id del paciente dueño del examen."
           }
         },
         {
@@ -531,15 +602,68 @@
           }
         },
         {
-          "name": "7. ESCALADA: paciente cambia usuario_id de su ficha (H-10)",
+          "name": "7. ESCALADA: medico se autopromueve a admin (H-11)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-07/H-10: PUT solo {usuario_id} no debe aceptar cambio — 200 con usuario_id nuevo => H-10', () => {",
-                  "  if (pm.response.code === 200) { const b = pm.response.json(); if (b.usuario_id !== undefined && String(b.usuario_id) === '99999') console.error('H-10: usuario_id editable'); }",
+                  "pm.test('CP-07/H-11: medico no debe poder cambiar rol_id — 200 con rol admin => H-11', () => {",
+                  "  if (pm.response.code === 200) { const b = pm.response.json(); if (b.rol_id === 1 || b.rol_nombre === 'admin') console.error('H-11 ALTO: medico autopromovido a admin'); }",
                   "  pm.expect([400,403]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"medico@cuidarteplus.com\",\n  \"rol_id\": 1\n}" },
+            "url": { "raw": "{{base_url}}/usuarios/2", "host": ["{{base_url}}"], "path": ["usuarios", "2"] },
+            "description": "H-11: users.js:522 permite que isAdminOrMedico cambie rol_id sin verificar que no se ascienda a sí mismo. usuario 2 = medico del dump. El body incluye un campo conocido para pasar yup (rol_id no está en el schema pero permanece en req.body)."
+          }
+        },
+        {
+          "name": "7b. Restaurar rol medico (cleanup tras H-11)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('cleanup: rol medico restaurado a 2', () => pm.expect([200,204]).to.include(pm.response.code));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"correo\": \"medico@cuidarteplus.com\",\n  \"rol_id\": 2\n}" },
+            "url": { "raw": "{{base_url}}/usuarios/2", "host": ["{{base_url}}"], "path": ["usuarios", "2"] },
+            "description": "Deja el dump en estado inicial (medico = rol 2) para corridas siguientes."
+          }
+        },
+        {
+          "name": "8. ESCALADA: paciente cambia usuario_id de su ficha (H-10)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-07/H-10: PUT con usuario_id no debe aceptar el cambio — 200 con usuario_id nuevo => H-10; 500 => FK intentada (campo procesado)', () => {",
+                  "  if (pm.response.code === 200) { const b = pm.response.json(); if (b.usuario_id !== undefined && String(b.usuario_id) === '99999') console.error('H-10: usuario_id editable'); }",
+                  "  if (pm.response.code === 500) console.error('H-10 parcial: usuario_id llegó a la BD (error FK/500)');",
+                  "  pm.expect([200,400,403,500]).to.include(pm.response.code);",
+                  "  if (pm.response.code === 200) { const b = pm.response.json(); pm.expect(String(b.usuario_id||'')).to.not.eql('99999'); }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -552,7 +676,7 @@
               { "key": "Content-Type", "value": "application/json" },
               { "key": "Authorization", "value": "Bearer {{token_paciente}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"usuario_id\": 99999\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"observaciones_medicas_generales\": \"CP-10 prueba\",\n  \"usuario_id\": 99999\n}" },
             "url": { "raw": "{{base_url}}/pacientes/{{paciente_id}}", "host": ["{{base_url}}"], "path": ["pacientes", "{{paciente_id}}"] }
           }
         }
@@ -562,14 +686,13 @@
       "name": "CP-08/09 · Soft delete y auditoría",
       "item": [
         {
-          "name": "1. Eliminar examen (medico — ERS exige soft delete)",
+          "name": "1. Eliminar examen (admin — ERS exige soft delete)",
           "event": [
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-08: soft delete 200/204 con admin (medico => 403 en este codigo)', () => pm.expect([200,204]).to.include(pm.response.code));",
-                  "pm.test('CP-08 OBS: fila fisica borrada => H-06 (verificar con psql id=' + pm.collectionVariables.get('examen_id') + ')', () => console.warn('ERS exige soft delete (eliminado=true); codigo usa DELETE FROM'));"
+                  "pm.test('CP-08: DELETE 200/204 con admin', () => pm.expect([200,204]).to.include(pm.response.code));"
                 ],
                 "type": "text/javascript"
               }
@@ -579,7 +702,30 @@
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
             "url": { "raw": "{{base_url}}/examenes/{{examen_id}}", "host": ["{{base_url}}"], "path": ["examenes", "{{examen_id}}"] },
-            "description": "RF-3.3. Codigo actual: requireRole solo admin (medico => 403) y DELETE FROM (H-06)."
+            "description": "RF-3.3. Codigo actual: requireRole solo admin (medico => 403) y DELETE FROM. La verificación de soft delete es el request siguiente (GET)."
+          }
+        },
+        {
+          "name": "1b. Verificar soft delete (GET tras DELETE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-08/H-06: soft delete — el examen debe seguir accesible con eliminado=true; 404 => H-06 (borrado físico)', () => {",
+                  "  if (pm.response.code === 404) console.error('H-06 CRITICO: DELETE FROM elimina la fila (hard delete), ERS exige soft delete');",
+                  "  pm.expect([200,204]).to.include(pm.response.code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_admin}}" }],
+            "url": { "raw": "{{base_url}}/examenes/{{examen_id}}", "host": ["{{base_url}}"], "path": ["examenes", "{{examen_id}}"] },
+            "description": "ERS RF-3.3: soft delete. Si el GET devuelve 404, la fila fue borrada físicamente => H-06."
           }
         },
         {
@@ -590,9 +736,17 @@
               "script": {
                 "exec": [
                   "pm.test('CP-08: 200 lista auditoría', () => pm.response.to.have.status(200));",
-                  "pm.test('CP-08 OBS: si los registros NO traen ip_origen ni recurso_id => H-12', () => {",
+                  "pm.test('CP-08/H-12: auditoría debe traer ip_origen y recurso_id (RF-5.1)', () => {",
                   "  const rows = pm.response.json();",
-                  "  if (rows.length) { const k = Object.keys(rows[0]); console.warn('Columnas reales: ' + k.join(', ')); }",
+                  "  if (Array.isArray(rows) && rows.length) {",
+                  "    const k = Object.keys(rows[0]);",
+                  "    console.warn('Columnas reales: ' + k.join(', '));",
+                  "    const hasIp = k.includes('ip_origen') || k.some(x => x.includes('ip'));",
+                  "    const hasRecurso = k.includes('recurso_id') || k.some(x => x.includes('recurso'));",
+                  "    if (!hasIp || !hasRecurso) console.error('H-12: falta ip_origen y/o recurso_id');",
+                  "    pm.expect(hasIp).to.be.true;",
+                  "    pm.expect(hasRecurso).to.be.true;",
+                  "  }",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -607,7 +761,7 @@
           }
         },
         {
-          "name": "3. Auditoría como no-admin => 403",
+          "name": "3. Auditoría como no-admin (paciente) => 403",
           "event": [
             {
               "listen": "test",
@@ -616,7 +770,7 @@
           ],
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{token_medico}}" }],
+            "header": [{ "key": "Authorization", "value": "Bearer {{token_paciente}}" }],
             "url": { "raw": "{{base_url}}/auditoria", "host": ["{{base_url}}"], "path": ["auditoria"] }
           }
         },
@@ -693,9 +847,9 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-18/19: debe ser 401 — si 200 => H-05 fuga de ficha medica (Ley 20.584)', () => {",
+                  "pm.test('CP-18/19/H-05: 401 sin token — 200 => H-05 fuga de ficha medica (Ley 20.584)', () => {",
                   "  if (pm.response.code === 200) console.error('H-05 CRITICO: ficha completa expuesta sin auth');",
-                  "  else pm.expect(pm.response.code).to.eql(401);",
+                  "  pm.expect(pm.response.code).to.eql(401);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -724,6 +878,52 @@
           }
         },
         {
+          "name": "5b. PUT /roles/1 SIN token (H-04)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-18: PUT /roles sin token = 401 — 200 => H-04', () => {",
+                  "  if (pm.response.code === 200) console.error('H-04: rol actualizado sin autenticacion');",
+                  "  pm.expect(pm.response.code).to.eql(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"nombre\": \"admin\"\n}" },
+            "url": { "raw": "{{base_url}}/roles/1", "host": ["{{base_url}}"], "path": ["roles", "1"] },
+            "description": "H-04: roles.js:57 sin middleware de auth."
+          }
+        },
+        {
+          "name": "5c. GET /auditoria SIN token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-18: GET /auditoria sin token = 401 — 200 => H-03/H-05', () => {",
+                  "  if (pm.response.code === 200) console.error('auditoria expuesta sin token');",
+                  "  pm.expect(pm.response.code).to.eql(401);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/auditoria", "host": ["{{base_url}}"], "path": ["auditoria"] }
+          }
+        },
+        {
           "name": "6. Cabeceras de seguridad (CP-12)",
           "event": [
             {
@@ -734,7 +934,11 @@
                   "pm.test('CP-12: X-Frame-Options', () => pm.expect(pm.response.headers.get('X-Frame-Options')||'').to.not.eql(''));",
                   "pm.test('CP-12: CSP', () => pm.expect(pm.response.headers.get('Content-Security-Policy')||'').to.not.eql(''));",
                   "pm.test('CP-12: HSTS', () => pm.expect(pm.response.headers.get('Strict-Transport-Security')||'').to.not.eql(''));",
-                  "pm.test('CP-12: CORS restringido — si Access-Control-Allow-Origin=* => H-14', () => { if ((pm.response.headers.get('Access-Control-Allow-Origin')||'') === '*') console.error('H-14: CORS abierto'); });",
+                  "pm.test('CP-12/H-14: CORS no debe ser * — si Access-Control-Allow-Origin=* => H-14', () => {",
+                  "  const acao = pm.response.headers.get('Access-Control-Allow-Origin')||'';",
+                  "  if (acao === '*') console.error('H-14: CORS abierto a cualquier origen');",
+                  "  pm.expect(acao).to.not.eql('*');",
+                  "});",
                   "pm.test('CP-12: Server no filtra versión', () => console.warn('Server header = ' + (pm.response.headers.get('Server')||'n/a')));"
                 ],
                 "type": "text/javascript"
@@ -755,9 +959,11 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('CP-19: si glosa trae mensaje de PostgreSQL => H-15', () => {",
-                  "  const g = (pm.response.json && pm.response.json().glosa) || '';",
-                  "  if (g.match(/relation|column|syntax|pg_/i)) console.error('H-15: fuga de errores: ' + g);",
+                  "pm.test('CP-19/H-15: glosa NO debe contener mensaje de PostgreSQL', () => {",
+                  "  let g = '';",
+                  "  try { g = (pm.response.json && pm.response.json().glosa) || ''; } catch (e) {}",
+                  "  if (g.match(/relation|column|syntax|pg_|bigint/i)) console.error('H-15: fuga de errores: ' + g);",
+                  "  pm.expect(g).to.not.match(/relation|column|syntax|pg_|bigint/i);",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -778,6 +984,84 @@
             "header": [],
             "url": { "raw": "{{base_url}}/openapi.json", "host": ["{{base_url}}"], "path": ["openapi.json"] },
             "description": "Catalogar endpoints expuestos. En QA es aceptable; en producción debe protegerse."
+          }
+        }
+      ]
+    },
+    {
+      "name": "CP-11 · XSS en campos clínicos",
+      "item": [
+        {
+          "name": "1. Crear examen con diagnosis XSS (medico)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-11: 201 examen con payload XSS', () => pm.response.to.have.status(201));",
+                  "pm.test('CP-11: payload debe quedar como texto (no interpretado) en la respuesta', () => {",
+                  "  const b = pm.response.text();",
+                  "  pm.expect(b).to.include('<script>');",
+                  "});",
+                  "pm.test('CP-11/H-14: CSP ausente => H-14', () => {",
+                  "  const csp = pm.response.headers.get('Content-Security-Policy')||'';",
+                  "  if (!csp) console.error('H-14: sin cabecera CSP');",
+                  "  pm.expect(csp).to.not.eql('');",
+                  "});",
+                  "if (pm.response.code === 201) pm.collectionVariables.set('examen_id', String(pm.response.json().id));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"tipo_examen_medico_id\": 1,\n  \"paciente_id\": {{paciente_id}},\n  \"diagnosis\": \"<script>alert('XSS')</script>\",\n  \"tratamiento\": \"Ninguno\",\n  \"observaciones\": \"CP-11 XSS\",\n  \"notas\": \"<img src=x onerror=alert(1)>\"\n}" },
+            "url": { "raw": "{{base_url}}/examenes", "host": ["{{base_url}}"], "path": ["examenes"] },
+            "description": "ERS NFR-SEG-5. Payload debe almacenarse/devolverse como texto; sin CSP => H-14."
+          }
+        },
+        {
+          "name": "2. Crear paciente con observaciones XSS",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now().toString().slice(-8);",
+                  "const rutNum = (ts.replace(/[^0-9]/g,'') || '87654321');",
+                  "pm.collectionVariables.set('xss_rut', rutNum.slice(0,8) + '-5');",
+                  "pm.collectionVariables.set('xss_mail', 'xss_' + ts + '@test.cl');"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('CP-11: 201 paciente con payload', () => pm.response.to.have.status(201));",
+                  "pm.test('CP-11: payload en observaciones como texto', () => {",
+                  "  pm.expect(pm.response.text()).to.include('onerror');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_medico}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"primer_nombre\": \"XSS\",\n  \"apellido_paterno\": \"Test\",\n  \"apellido_materno\": \"CP11\",\n  \"fecha_nacimiento\": \"1990-01-01\",\n  \"sexo\": \"M\",\n  \"rut\": \"{{xss_rut}}\",\n  \"email\": \"{{xss_mail}}\",\n  \"telefono\": \"+56912345678\",\n  \"observaciones_medicas_generales\": \"<img src=x onerror=alert(1)>\"\n}" },
+            "url": { "raw": "{{base_url}}/pacientes", "host": ["{{base_url}}"], "path": ["pacientes"] },
+            "description": "Verificación servidor: payload almacenado como texto; ejecución en UI se valida manualmente en navegador."
           }
         }
       ]

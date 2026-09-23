@@ -9,7 +9,8 @@ Paquete de evaluación de calidad y seguridad del **Sistema de Exámenes Médico
 |---|---|
 | `informe-seguridad-calidad-cuidarte.md` | Plan de pruebas: criterios ISO 25010 / OWASP, matriz RBAC, 19 casos CP-01…CP-19, trazabilidad 28/28 (IE5) |
 | `hallazgos-seguridad-cuidarte.md` | 17 hallazgos (6 críticos, 6 altos, 5 medios) con `archivo:línea` y mapeo OWASP |
-| `resultados-pruebas-cuidarte.md` | Matriz de resultados predictiva y plan de remediación |
+| `resultados-pruebas-cuidarte.md` | Matriz de resultados (predictivo + ejecución) y plan de remediación |
+| `informe-ejecucion-pruebas.md` | Informe de la corrida Newman (evidencia dinámica) |
 | `presentacion-cuidarte.md` | Presentación de la evaluación (16 slides) |
 | `guia-estudio-cuidarte.html` | Guía interactiva de estudio (flashcards, quiz, checklist) |
 | `Cuidarte_CP01-19.postman_collection.json` | Colección Postman alineada a los casos de prueba |
