@@ -4,7 +4,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Pt, RGBColor, Emu, Inches
+from docx.shared import Pt, RGBColor, Emu, Inches, Cm
 
 TEMPLATE = r"C:\Users\crist\Desktop\medina\EP1_ISY1102_Estudiante_Formato_Informe.docx"
 OUT = r"C:\Users\crist\Desktop\medina\Informe_Seguridad_Calidad_Cuidarte_ISY1102.docx"
@@ -36,12 +36,13 @@ def set_run(run, *, font="Arial", size=10, bold=None, color=None, italic=None):
     return run
 
 
-def body_p(doc, text="", *, size=10, bold=False, color=INK, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=6):
+def body_p(doc, text="", *, size=11, bold=False, color=INK, align=WD_ALIGN_PARAGRAPH.JUSTIFY, space_after=6):
     p = doc.add_paragraph()
     p.style = doc.styles["Normal"]
     p.alignment = align
     p.paragraph_format.space_after = Pt(space_after)
     p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.line_spacing = 1.5
     if text:
         set_run(p.add_run(text), size=size, bold=bold, color=color)
     return p
@@ -51,8 +52,9 @@ def bullet(doc, text):
     p = doc.add_paragraph(style="List Paragraph")
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_after = Pt(3)
+    p.paragraph_format.line_spacing = 1.5
     # use numbering if available; fallback to bullet char
-    set_run(p.add_run("• " + text), size=10, bold=False, color=INK)
+    set_run(p.add_run("• " + text), size=11, bold=False, color=INK)
     return p
 
 
@@ -61,7 +63,7 @@ def h1(doc, text):
     p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
     p.paragraph_format.space_before = Pt(12)
     p.paragraph_format.space_after = Pt(8)
-    set_run(p.add_run(text), size=16, bold=True, color=BLACK)
+    set_run(p.add_run(text), size=12, bold=True, color=BLACK)
     return p
 
 
@@ -89,6 +91,7 @@ def set_cell_text(cell, text, *, size=10, bold=False, color=BLACK, align=WD_ALIG
     p.alignment = align
     p.paragraph_format.space_before = Pt(2)
     p.paragraph_format.space_after = Pt(2)
+    p.paragraph_format.line_spacing = 1.0
     lines = text.split("\n") if text else [""]
     for i, line in enumerate(lines):
         if i > 0:
@@ -96,6 +99,7 @@ def set_cell_text(cell, text, *, size=10, bold=False, color=BLACK, align=WD_ALIG
             p.alignment = align
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(2)
+            p.paragraph_format.line_spacing = 1.0
         set_run(p.add_run(line), size=size, bold=bold, color=color)
 
 
@@ -111,7 +115,7 @@ def add_toc_field(doc):
     fld_sep = OxmlElement("w:fldChar")
     fld_sep.set(qn("w:fldCharType"), "separate")
     placeholder = OxmlElement("w:t")
-    placeholder.text = "Actualice el índice con F9 en Word."
+    placeholder.text = "Índice generado automáticamente (clic derecho > Actualizar campos)."
     fld_end = OxmlElement("w:fldChar")
     fld_end.set(qn("w:fldCharType"), "end")
     run._r.append(fld_begin)
@@ -144,18 +148,25 @@ def cover(doc):
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     set_run(p.add_run("ISY1102 - Seguridad y calidad en el desarrollo de software\n"), size=11, bold=True, color=BLACK)
-    set_run(p.add_run("Sección XX"), size=11, bold=False, color=BLACK)
+    set_run(p.add_run("Carrera: "), size=11, bold=False, color=BLACK)
+    highlight(set_run(p.add_run("Ingeniería en Informática"), size=11, bold=False, color=BLACK))
+    set_run(p.add_run("\nSección: "), size=11, bold=False, color=BLACK)
+    highlight(set_run(p.add_run("XX"), size=11, bold=False, color=BLACK))
     for _ in range(3):
         body_p(doc, "", space_after=0)
     p = doc.add_paragraph()
     p.alignment = WD_ALIGN_PARAGRAPH.LEFT
     set_run(p.add_run("Integrantes\n"), size=11, bold=True, color=BLACK)
-    for name in (
-        "Nombre Apellido Alumno 1",
-        "Nombre Apellido Alumno 2",
-        "Nombre Apellido Alumno 3",
-    ):
+    for name in ("Cristian Cerda", "Gonzalo Berríos"):
         set_run(p.add_run(name + "\n"), size=11, bold=False, color=BLACK)
+    set_run(p.add_run("\nDocente\n"), size=11, bold=True, color=BLACK)
+    set_run(p.add_run("Cristian Medina\n"), size=11, bold=False, color=BLACK)
+    set_run(
+        p.add_run("\nFecha de entrega: 24 de septiembre de 2026"),
+        size=11,
+        bold=False,
+        color=BLACK,
+    )
     # page break
     p = doc.add_paragraph()
     r = p.add_run()
@@ -166,6 +177,7 @@ def cover(doc):
 
 def section1(doc):
     h1(doc, "1. Introducción")
+    h2(doc, "1.1 Contexto del sistema evaluado")
     body_p(
         doc,
         "Cuidarte+ es una plataforma web médica multicapa para centros de salud: gestión de pacientes, "
@@ -192,28 +204,51 @@ def section1(doc):
         "autenticación, RBAC y controles OWASP sin fuga de información clínica; y (4) la conformidad "
         "legal con las leyes 19.628 y 20.584 y una auditoría trazable (RF-5.1)."
     )
-    body_p(doc, "El informe se estructura en cuatro secciones:")
-    bullet(doc, "Sección 2 — Criterios de calidad, seguridad y cumplimiento normativo (ISO/IEC 25010, OWASP, legislación chilena y matriz RBAC esperada).")
-    bullet(doc, "Sección 3 — Plan de pruebas: estrategia, tipos de prueba, criterios de aceptación transversales y herramientas/recursos.")
-    bullet(doc, "Sección 4 — Diseño de 19 casos de prueba (CP-01 a CP-19) sobre los endpoints y esquema reales del código.")
+    h2(doc, "1.2 Objetivos del plan de pruebas")
+    body_p(doc, "Objetivo general: verificar, de forma objetiva y reproducible, que Cuidarte+ cumple los requerimientos del ERS v1.1 y los marcos de calidad, seguridad y legalidad aplicables, antes de autorizar su paso a producción.")
+    body_p(doc, "Objetivos específicos:")
+    bullet(doc, "Verificar el cumplimiento funcional de cada requerimiento funcional (RF-1.1 a RF-5.1) contra los endpoints reales de la API.")
+    bullet(doc, "Medir los atributos no funcionales comprometidos: latencia inferior a 300 ms, 200 usuarios concurrentes, carga inicial de la SPA bajo 2 s, disponibilidad de 99,5% y accesibilidad WCAG 2.1 AA.")
+    bullet(doc, "Validar los controles de seguridad de autenticación, autorización por roles (RBAC) y los riesgos de OWASP Top 10 (2021), sin fuga de información clínica.")
+    bullet(doc, "Comprobar la conformidad legal con la Ley N° 19.628 y la Ley N° 20.584, incluida la trazabilidad de la auditoría exigida por RF-5.1.")
+    bullet(doc, "Entregar evidencia trazable que permita decidir, con fundamento técnico, si el producto se certifica o se rechaza.")
+
+    h2(doc, "1.3 Alcance")
     body_p(
         doc,
-        "Alcance: API Express completa (/autenticacion, /usuarios, /pacientes, /examenes, /documentos, "
-        "/auditoria, /roles, /docs), SPA React, esquema PostgreSQL y uploads. Fuera de alcance: "
-        "infraestructura del datacenter, modificación del código fuente (este plan es de solo "
-        "análisis/prueba) y terceros no auditados. Glosario: RF (funcional), NFR (no funcional), RB "
-        "(regla de negocio), RBAC, DAST/SAST, UAT, JWT, SPA y soft delete."
+        "Dentro del alcance: la API Express completa (/autenticacion, /usuarios, /pacientes, /examenes, "
+        "/documentos, /auditoria, /roles y /docs), la SPA React, el esquema PostgreSQL y el "
+        "almacenamiento de documentos clínicos. Fuera del alcance: la infraestructura del centro de "
+        "datos, los componentes de terceros no auditados y la modificación del código fuente, ya que "
+        "este encargo es de análisis y prueba, no de corrección."
     )
+    body_p(
+        doc,
+        "Glosario de siglas empleadas: ERS (especificación de requerimientos de software), RF "
+        "(requerimiento funcional), NFR (requerimiento no funcional), RB (regla de negocio), RBAC "
+        "(control de acceso basado en roles), SAST y DAST (análisis estático y dinámico de seguridad), "
+        "UAT (pruebas de aceptación de usuario), JWT (token web JSON), SPA (aplicación de página única) "
+        "y soft delete (borrado lógico)."
+    )
+
+    h2(doc, "1.4 Estructura del informe")
+    body_p(doc, "El informe se organiza en seis secciones y tres anexos:")
+    bullet(doc, "Sección 2 — Criterios de calidad, seguridad y cumplimiento normativo que el software debe satisfacer.")
+    bullet(doc, "Sección 3 — Tipos de prueba seleccionados y la justificación de cada uno.")
+    bullet(doc, "Sección 4 — Estrategia de pruebas, priorización, criterios de entrada y salida, criterios de aceptación transversales y cronograma.")
+    bullet(doc, "Sección 5 — Recursos humanos, técnicos y de entorno necesarios para ejecutar el plan.")
+    bullet(doc, "Sección 6 — Diseño de los 19 casos de prueba (CP-01 a CP-19) sobre los endpoints y el esquema reales.")
+    bullet(doc, "Anexos A, B y C — Matriz de trazabilidad, catálogo de hallazgos y evidencia de la ejecución automatizada.")
 
 
 def section2(doc):
-    h1(doc, "2. Criterios de calidad")
+    h1(doc, "2. Criterios de calidad, seguridad y cumplimiento normativo")
     body_p(
         doc,
         "Los criterios se derivan del ERS v1.1 (especificación de requerimientos de software del "
         "proyecto), de ISO/IEC 25010 para atributos de calidad, de OWASP Top 10 (2021) para seguridad "
         "y de la legislación chilena aplicable al software médico. Estos criterios definen el estándar "
-        "que el software debe cumplir y son la base de los casos de prueba de la sección 4."
+        "que el software debe cumplir y son la base de los casos de prueba de la sección 6."
     )
     h2(doc, "2.1 Calidad de software (ISO/IEC 25010)")
     bullet(doc, "Usabilidad (NFR-USAB): WCAG 2.1 AA; tipografía ≥12 px; contraste ≥4.5:1; etiquetas WAI-ARIA; targets ≥48×48 px; navegación 100% por teclado; foco en adultos mayores (NFR-USAB-1, NFR-USAB-4).")
@@ -243,9 +278,65 @@ def section2(doc):
 
 
 def section3(doc):
-    h1(doc, "3. Plan de pruebas")
+    """3. Tipos de pruebas y su justificacion (apartado 3 de la pauta)."""
+    h1(doc, "3. Tipos de pruebas y su justificación")
+    body_p(
+        doc,
+        "La selección de tipos de prueba responde a la naturaleza del software evaluado: una "
+        "aplicación clínica que maneja datos sensibles bajo requerimientos funcionales, no "
+        "funcionales y legales. Cada tipo se incorpora porque cubre una familia de requerimientos "
+        "que ningún otro tipo puede verificar, y se indica el caso de prueba que lo materializa."
+    )
+    grid_table(
+        doc,
+        ["Tipo de prueba", "Propósito y justificación", "Requerimientos", "Casos"],
+        [
+            ("Funcionales",
+             "Verifican que cada caso de uso produzca el resultado especificado. Son el primer filtro: si el login o el registro de un examen no funcionan, ningún atributo de calidad es relevante.",
+             "RF-1.1 a RF-5.1", "CP-01, CP-04, CP-05"),
+            ("De integración",
+             "Comprueban el flujo completo SPA React - API Express - PostgreSQL. La mayoría de los defectos de esta arquitectura aparece en los contratos entre capas, no dentro de ellas.",
+             "ERS §2.1 y §4", "CP-04, CP-05"),
+            ("De seguridad (SAST y DAST)",
+             "Detectan inyección SQL, XSS, CSRF, elusión de JWT, cabeceras ausentes y fallas de control de acceso. Son obligatorias porque el sistema trata datos sensibles regidos por ley.",
+             "NFR-SEG-1 a NFR-SEG-9", "CP-10, CP-11, CP-12, CP-18, CP-19"),
+            ("De control de acceso (RBAC)",
+             "Validan que cada rol acceda solo a lo que le corresponde. Es el control que protege la reserva de la ficha clínica exigida por la Ley N° 20.584.",
+             "NFR-SEG-4, RB-1/2/3", "CP-06, CP-07, CP-18"),
+            ("De rendimiento y carga",
+             "Miden latencia y estabilidad bajo concurrencia. Un sistema clínico lento en consulta retrasa la atención, por lo que el rendimiento es un requisito de servicio, no un lujo.",
+             "NFR-PERF-1/2/3", "CP-13, CP-14"),
+            ("De usabilidad y accesibilidad",
+             "Verifican legibilidad, contraste, etiquetado ARIA y navegación por teclado. El público objetivo incluye adultos mayores, lo que convierte la accesibilidad en un criterio de aceptación.",
+             "NFR-USAB-1/4, WCAG 2.1 AA", "CP-15"),
+            ("De compatibilidad",
+             "Confirman el funcionamiento en los navegadores y dispositivos declarados. Los pacientes acceden desde equipos heterogéneos que la institución no controla.",
+             "NFR-COMPAT-1/2", "CP-16"),
+            ("De integridad y auditoría",
+             "Comprueban el borrado lógico y la bitácora inmutable de acciones críticas. La ficha clínica debe conservarse y toda acción debe ser atribuible para efectos de peritaje.",
+             "RF-3.3, RF-5.1", "CP-08, CP-09"),
+            ("De disponibilidad y recuperación",
+             "Validan el nivel de servicio comprometido y la restauración de respaldos. La indisponibilidad de una plataforma clínica tiene impacto asistencial directo.",
+             "NFR-DIS-1/2, NFR-SEG-7", "CP-17"),
+        ],
+        widths_cm=[3.3, 7.6, 3.1, 3.1],
+        size=9,
+    )
+    caption(doc, "Tabla 3.1. Tipos de prueba seleccionados, su justificación y los casos que los materializan.")
+    body_p(
+        doc,
+        "Las pruebas funcionales, de integración y de control de acceso se consideran bloqueantes: un "
+        "fallo en cualquiera de ellas impide la certificación. Las de rendimiento, usabilidad, "
+        "compatibilidad y disponibilidad admiten un plan de mitigación acordado, siempre que queden "
+        "documentadas con su medición."
+    )
 
-    h2(doc, "3.1 Estrategia de pruebas")
+
+def section4(doc):
+    """4. Estrategia de pruebas y justificacion (apartado 4 de la pauta)."""
+    h1(doc, "4. Estrategia de pruebas y justificación")
+
+    h2(doc, "4.1 Enfoque y etapas")
     body_p(
         doc,
         "El enfoque es mixto: automatizado para la API (Postman/Newman, JMeter, ZAP) y manual para "
@@ -255,12 +346,14 @@ def section3(doc):
     bullet(doc, "Etapa 2 — Funcionales/sistema (Postman/Newman + UI manual): login, CRUD de usuarios/pacientes/exámenes/documentos, RBAC y soft delete. Prioridad P1.")
     bullet(doc, "Etapa 3 — No funcionales (JMeter para carga y OWASP ZAP para DAST): 200 usuarios, SQLi/XSS, cabeceras TLS y latencia vs delayMiddleware. Prioridades P1/P2.")
     bullet(doc, "Etapa 4 — UAT/accesibilidad (Axe DevTools + panel de 5 adultos mayores): WCAG 2.1 AA, legibilidad, teclado y táctil. Prioridad P2.")
-    body_p(doc, "Herramientas que se utilizarán (detalle en 3.4): Postman/Newman, Apache JMeter, OWASP ZAP, Axe/Lighthouse, Jest+Supertest, psql/pgAdmin, curl/SSL Labs y Docker Compose.")
-    body_p(doc, "Priorización de pruebas:")
+    body_p(doc, "Herramientas que se utilizarán (detalle en la sección 5): Postman/Newman, Apache JMeter, OWASP ZAP, Axe/Lighthouse, Jest+Supertest, psql/pgAdmin, curl/SSL Labs y Docker Compose.")
+    h2(doc, "4.2 Priorización de las pruebas")
+    body_p(doc, "La priorización sigue el riesgo clínico y legal: primero lo que expone datos de pacientes o permite tomar control del sistema, después lo que degrada el servicio y, por último, lo que afecta la experiencia en escenarios acotados.")
     bullet(doc, "P1 – Crítica: login/sesión, RBAC sin fuga, exámenes+adjuntos, auditoría, SQLi/XSS, auth de endpoints mutantes (CP-01, CP-02, CP-04, CP-06, CP-07, CP-08, CP-09, CP-10, CP-11, CP-12, CP-18, CP-19).")
     bullet(doc, "P2 – Alta: rendimiento <300 ms/200 usuarios, accesibilidad, registro de pacientes, contraseñas, carga <2 s y disponibilidad (CP-03, CP-05, CP-13, CP-14, CP-15, CP-17).")
     bullet(doc, "P3 – Media: compatibilidad de navegadores/dispositivos (CP-16).")
-    body_p(doc, "Criterios de entrada:")
+    h2(doc, "4.3 Criterios de entrada y salida")
+    body_p(doc, "Criterios de entrada (condiciones sin las cuales no se inicia la ejecución):")
     bullet(doc, "Código fuente extraído y desplegado en QA/Staging (Docker) sin modificar el software.")
     bullet(doc, "PostgreSQL inicializado con init.sql + dump-cuidarteplus.sql (datos 100% sintéticos).")
     bullet(doc, "ERS v1.1 aprobado y matriz de trazabilidad lista (28 IDs).")
@@ -271,17 +364,7 @@ def section3(doc):
     bullet(doc, "Latencia ≤300 ms en el 95% de peticiones sin delay artificial; endpoints con delay(5000) documentados como incumplimiento de NFR-PERF-1.")
     bullet(doc, "Accesibilidad ≥90% sin violaciones críticas WCAG 2.1 AA y evidencia completa según protocolo de evidencia.")
 
-    h2(doc, "3.2 Tipos de prueba")
-    bullet(doc, "Pruebas funcionales: reglas de negocio y casos de uso reales (login, CRUD, adjuntos) contra RF-1.1 a RF-5.1.")
-    bullet(doc, "Pruebas de integración: React ↔ Express ↔ PostgreSQL vía REST JSON (ERS secciones 2.1 y 4).")
-    bullet(doc, "Pruebas de seguridad (DAST/SAST): SQLi, XSS, CSRF, bypass JWT, cabeceras y RBAC (NFR-SEG-1..9, OWASP).")
-    bullet(doc, "Pruebas de rendimiento/carga: latencia y estabilidad con 200 usuarios (NFR-PERF-1/2/3).")
-    bullet(doc, "Pruebas de usabilidad/accesibilidad: legibilidad, ARIA, contraste y teclado (NFR-USAB-1/4, WCAG 2.1 AA).")
-    bullet(doc, "Pruebas de compatibilidad: Chrome, Firefox, Safari y Edge (2 últimas versiones) en escritorio, tablet y móvil (NFR-COMPAT-1/2).")
-    bullet(doc, "Pruebas de auditoría e integridad: log inmutable de acciones críticas (RF-5.1, leyes 19.628/20.584).")
-    bullet(doc, "Pruebas de disponibilidad y respaldo: uptime 99.5% y restauración (NFR-DIS-1/2, NFR-SEG-7).")
-
-    h2(doc, "3.3 Criterios de aceptación")
+    h2(doc, "4.4 Criterios de aceptación transversales")
     body_p(
         doc,
         "Los siguientes criterios de aceptación son transversales: se aplican a todos los casos de "
@@ -296,7 +379,75 @@ def section3(doc):
     bullet(doc, "Trazabilidad de errores: todo 500 registra ID correlacionable en el log de servidor sin filtrar detalles al cliente.")
     bullet(doc, "Reglas de negocio y legal: reserva clínica (Ley 20.584), confidencialidad de datos (Ley 19.628) y soft delete con modal (RF-3.3) deben cumplirse en todos los flujos sensibles.")
 
-    h2(doc, "3.4 Herramientas utilizadas")
+    h2(doc, "4.5 Cronograma de ejecución")
+    body_p(
+        doc,
+        "La ejecución se planifica en cuatro semanas, encadenando las etapas de modo que cada una "
+        "entregue la línea base que la siguiente necesita. Las pruebas de seguridad se ubican después "
+        "de las funcionales porque requieren un sistema estable; la aceptación de usuario se deja al "
+        "final para evaluar la versión ya corregida en lo bloqueante."
+    )
+    grid_table(
+        doc,
+        ["Semana", "Etapa", "Actividades", "Casos", "Entregable"],
+        [
+            ("1", "Preparación y pruebas unitarias/de integración",
+             "Despliegue del entorno QA en Docker, carga del dump sintético, incorporación de Jest y Supertest, y exportación de la colección Postman.",
+             "Base técnica",
+             "Entorno QA operativo y colección versionada"),
+            ("2", "Pruebas funcionales y de integración",
+             "Ejecución de los casos de autenticación, CRUD de usuarios, pacientes, exámenes y documentos, más el control de acceso por rol.",
+             "CP-01 a CP-09",
+             "Matriz de resultados funcionales"),
+            ("3", "Pruebas de seguridad y de rendimiento",
+             "Análisis dinámico con OWASP ZAP, verificación de cabeceras y TLS, pruebas de carga con JMeter y medición de latencia A/B.",
+             "CP-10 a CP-14, CP-18, CP-19",
+             "Informe de hallazgos y de rendimiento"),
+            ("4", "Aceptación, compatibilidad y cierre",
+             "Panel de usabilidad con cinco adultos mayores, matriz de compatibilidad, verificación de disponibilidad y consolidación del informe final.",
+             "CP-15 a CP-17",
+             "Informe final y veredicto de certificación"),
+        ],
+        widths_cm=[1.4, 3.4, 6.5, 2.6, 3.2],
+        size=9,
+    )
+    caption(doc, "Tabla 4.1. Cronograma de ejecución del plan de pruebas.")
+
+
+def section5(doc):
+    """5. Recursos necesarios (apartado 5 de la pauta)."""
+    h1(doc, "5. Recursos necesarios")
+    body_p(
+        doc,
+        "La ejecución del plan requiere recursos humanos con competencias diferenciadas, recursos "
+        "técnicos de software y hardware, y un entorno de prueba aislado. A continuación se detalla "
+        "cada categoría junto con el fundamento de su necesidad."
+    )
+
+    h2(doc, "5.1 Recursos humanos")
+    grid_table(
+        doc,
+        ["Rol", "Responsabilidad", "Dedicación"],
+        [
+            ("QA Lead",
+             "Diseña y mantiene el plan, coordina la ejecución, consolida la evidencia y emite el veredicto de certificación.",
+             "4 semanas, jornada completa"),
+            ("Especialista en ciberseguridad (pentester)",
+             "Ejecuta el análisis estático y dinámico, clasifica los hallazgos según OWASP y valida las reglas de control de acceso.",
+             "2 semanas (semanas 2 y 3)"),
+            ("Dos desarrolladores de soporte",
+             "Resuelven dudas sobre el código, reproducen defectos y preparan las correcciones. La corrección en sí queda fuera del alcance de este informe.",
+             "Media jornada, a demanda"),
+            ("Panel de cinco personas adultas mayores",
+             "Ejecutan las pruebas de aceptación de usuario. Su participación es indispensable porque son el perfil de usuario declarado en NFR-USAB.",
+             "Una sesión de 2 horas (semana 4)"),
+        ],
+        widths_cm=[4.0, 9.5, 3.6],
+        size=9,
+    )
+    caption(doc, "Tabla 5.1. Roles involucrados en la ejecución del plan.")
+
+    h2(doc, "5.2 Recursos técnicos y herramientas")
     body_p(
         doc,
         "Herramientas tecnológicas y fundamento de su uso en la ejecución de las pruebas:"
@@ -309,11 +460,54 @@ def section3(doc):
     bullet(doc, "psql / pgAdmin — verificación de BD: soft delete, contenido de auditoría y hashes de contraseñas.")
     bullet(doc, "curl / SSL Labs — TLS y cabeceras: curl -I y enumeración de protocolos (NFR-SEG-1).")
     bullet(doc, "Docker Compose — ambiente QA: réplica aislada del ZIP sin tocar el código fuente.")
-    body_p(doc, "Recursos necesarios para la ejecución de las pruebas:")
-    bullet(doc, "Recursos humanos (roles involucrados): 1 QA Lead · 1 Pentester · 2 desarrolladores de soporte (corrección de hallazgos fuera de este informe) · 5 adultos mayores (panel UAT).")
-    bullet(doc, "Recursos técnicos (software, herramientas, equipos, navegadores, versiones): estación i7/16 GB para JMeter; PCs, tablets y smartphones; Chrome, Firefox, Safari y Edge; certificado SSL/TLS de prueba; Node.js 18+; Docker Desktop.")
-    bullet(doc, "Entorno de prueba: QA aislado vía docker-compose.yml (backend :4444, frontend :3333, Postgres :15442), datos sintéticos del dump y sin acceso a la red operativa (Ley 19.628). No se modifica el código de la aplicación.")
+    body_p(doc, "Equipamiento y software base:")
+    bullet(doc, "Estación de trabajo Intel i7 con 16 GB de memoria para generar la carga de JMeter sin que el generador se transforme en el cuello de botella de la medición.")
+    bullet(doc, "Equipos de escritorio, tablets y teléfonos para la matriz de compatibilidad y las pruebas táctiles de accesibilidad.")
+    bullet(doc, "Navegadores Chrome, Firefox, Safari y Edge, en sus dos últimas versiones estables, según NFR-COMPAT-1.")
+    bullet(doc, "Node.js 18 o superior, Docker Desktop y un certificado TLS de prueba para verificar NFR-SEG-1.")
 
+    h2(doc, "5.3 Entorno de prueba")
+    body_p(
+        doc,
+        "Las pruebas se ejecutan en un entorno de QA aislado, levantado con docker-compose.yml "
+        "(backend en el puerto 4444, frontend en el 3333 y PostgreSQL en el 15442), poblado "
+        "exclusivamente con los datos sintéticos del dump del proyecto y sin conexión a la red "
+        "operativa ni a datos reales de pacientes, en cumplimiento de la Ley N° 19.628. El código "
+        "de la aplicación no se modifica en ningún momento: el entorno replica el software tal como "
+        "fue entregado, de modo que la evidencia obtenida sea atribuible al producto evaluado."
+    )
+    body_p(
+        doc,
+        "Se definen tres ambientes: desarrollo (uso de las personas desarrolladoras, fuera del "
+        "alcance de este plan), QA (donde se ejecuta la totalidad de los casos aquí diseñados) y "
+        "preproducción (réplica de producción, reservada para la reejecución de regresión una vez "
+        "corregidos los hallazgos bloqueantes)."
+    )
+
+
+
+# Tipo de prueba por caso (requisito 6.7 de la pauta)
+TIPOS_PRUEBA = {
+    "CP-01": "Funcional y de seguridad (autenticación)",
+    "CP-02": "Funcional y de seguridad (gestión de sesión)",
+    "CP-03": "De seguridad (validación de credenciales) con enfoque funcional negativo",
+    "CP-04": "Funcional y de integración (extremo a extremo, con medición de rendimiento)",
+    "CP-05": "Funcional y de integración, con control de acceso por rol",
+    "CP-06": "De seguridad: control de acceso basado en roles (RBAC)",
+    "CP-07": "De seguridad: control de acceso y escalada de privilegios",
+    "CP-08": "De integridad y auditoría",
+    "CP-09": "De integridad y auditoría (inmutabilidad del registro)",
+    "CP-10": "De seguridad dinámica (DAST): inyección SQL",
+    "CP-11": "De seguridad dinámica (DAST): scripting entre sitios (XSS)",
+    "CP-12": "De seguridad: configuración, cifrado en tránsito y cabeceras",
+    "CP-13": "No funcional: rendimiento y carga",
+    "CP-14": "No funcional: rendimiento de la interfaz y de las transferencias",
+    "CP-15": "No funcional: usabilidad y accesibilidad (aceptación de usuario)",
+    "CP-16": "No funcional: compatibilidad",
+    "CP-17": "No funcional: disponibilidad y recuperación ante fallas",
+    "CP-18": "De seguridad: control de acceso en endpoints de mutación",
+    "CP-19": "De seguridad: exposición de información y configuración",
+}
 
 # --- CP data: (id, nombre, req, desc, pre, pasos, esperado, criterio, datos) ---
 CPS = [
@@ -531,7 +725,8 @@ CPS = [
 
 def cp_table(doc, cp):
     cid, nombre, req, desc, pre, pasos, esperado, criterio, datos = cp
-    table = doc.add_table(rows=14, cols=3)
+    tipo = TIPOS_PRUEBA.get(cid, "Funcional")
+    table = doc.add_table(rows=16, cols=3)
     try:
         table.style = "Grid Table 4"
     except KeyError:
@@ -554,6 +749,7 @@ def cp_table(doc, cp):
         (8, "RESULTADO ESPERADO", esperado),
         (10, "CRITERIO DE ACEPTACIÓN", criterio),
         (12, "DATOS DE PRUEBA", datos),
+        (14, "TIPO DE PRUEBA", tipo),
     ]
     for row_idx, label, content in blocks:
         # merge the 3 cells of the label row and content row
@@ -578,24 +774,330 @@ def cp_table(doc, cp):
             pass
         set_cell_text(table.rows[row_idx + 1].cells[0], content, size=10, bold=False)
 
+    no_split_rows(table)
+    set_col_widths(table, [2.4, 8.7, 6.0])
+
     # spacer
     body_p(doc, "", space_after=6)
     return table
 
 
-def section4(doc):
-    h1(doc, "4. Diseño de casos de prueba")
+def section6(doc):
+    h1(doc, "6. Diseño de casos de prueba")
     body_p(
         doc,
-        "Los 19 casos de prueba se ejecutan contra el host de pruebas http://localhost:4444 (Docker) "
-        "y siguen el formato del template: ID, nombre, requerimiento, descripción, precondiciones, "
-        "pasos, resultado esperado, criterio de aceptación y datos de prueba. Cada criterio de "
-        "aceptación refleja el ERS v1.1; cuando el código real incumple el esperado, el caso se "
-        "considera RECHAZADO y se registra el hallazgo asociado (H-01…H-17) en "
-        "hallazgos-seguridad-cuidarte.md."
+        "Se diseñan 19 casos de prueba, muy por encima del mínimo de cinco exigido, con el fin de "
+        "cubrir la totalidad de los requerimientos del ERS. Cada ficha detalla el identificador del "
+        "caso, su nombre, el requerimiento asociado con su código del ERS, el tipo de prueba, la "
+        "descripción del objetivo, las precondiciones, los pasos, el resultado esperado, los "
+        "criterios de aceptación y los datos de entrada. Los casos se ejecutan contra el entorno de "
+        "QA en Docker (http://localhost:4444)."
     )
     for cp in CPS:
         cp_table(doc, cp)
+    body_p(
+        doc,
+        "Cuando el comportamiento real del software difiere del criterio de aceptación, el caso se "
+        "considera rechazado y queda asociado a un hallazgo (H-01 a H-17). El Anexo B reúne el "
+        "catálogo completo de hallazgos y el Anexo C, la evidencia de la ejecución automatizada."
+    )
+
+
+# ------------------------------------------------------------- utilidades v2
+def highlight(run, color="yellow"):
+    """Resalta un run (marcadores que debe completar el estudiante)."""
+    rPr = run._element.get_or_add_rPr()
+    hl = OxmlElement("w:highlight")
+    hl.set(qn("w:val"), color)
+    rPr.append(hl)
+    return run
+
+
+def repeat_header_row(table):
+    """La fila 0 se repite como encabezado en cada página."""
+    trPr = table.rows[0]._tr.get_or_add_trPr()
+    th = OxmlElement("w:tblHeader")
+    th.set(qn("w:val"), "true")
+    trPr.append(th)
+    return table
+
+
+def no_split_rows(table):
+    """Evita que una fila se corte entre dos páginas."""
+    for row in table.rows:
+        trPr = row._tr.get_or_add_trPr()
+        trPr.append(OxmlElement("w:cantSplit"))
+    return table
+
+
+def set_col_widths(table, widths_cm):
+    table.autofit = False
+    layout = OxmlElement("w:tblLayout")
+    layout.set(qn("w:type"), "fixed")
+    table._tbl.tblPr.append(layout)
+    for row in table.rows:
+        for cell, w in zip(row.cells, widths_cm):
+            cell.width = Cm(w)
+    return table
+
+
+def grid_table(doc, headers, rows, widths_cm=None, size=9):
+    """Tabla con encabezado sombreado, bordes y repeticion de titulo."""
+    table = doc.add_table(rows=1 + len(rows), cols=len(headers))
+    try:
+        table.style = "Table Grid"
+    except KeyError:
+        pass
+    for i, htxt in enumerate(headers):
+        set_cell_text(table.rows[0].cells[i], htxt, size=size, bold=True)
+        shade_cell(table.rows[0].cells[i], HDR_BG)
+    for r, data in enumerate(rows, start=1):
+        for c, val in enumerate(data):
+            set_cell_text(table.rows[r].cells[c], val, size=size)
+    repeat_header_row(table)
+    no_split_rows(table)
+    if widths_cm:
+        set_col_widths(table, widths_cm)
+    body_p(doc, "", space_after=6)
+    return table
+
+
+def page_break(doc):
+    p = doc.add_paragraph()
+    r = p.add_run()
+    br = OxmlElement("w:br")
+    br.set(qn("w:type"), "page")
+    r._r.append(br)
+    return p
+
+
+def caption(doc, text):
+    p = body_p(doc, text, size=9, align=WD_ALIGN_PARAGRAPH.LEFT, space_after=10)
+    for run in p.runs:
+        run.italic = True
+    return p
+
+
+def set_doc_properties(doc):
+    cp = doc.core_properties
+    cp.title = "Informe de seguridad y calidad en el desarrollo de software - Cuidarte+"
+    cp.subject = "ISY1102 - Evaluación de seguridad y calidad de software (EP1)"
+    cp.category = "Informe académico"
+    cp.keywords = "ISY1102; ISO/IEC 25010; OWASP Top 10 2021; Ley 19.628; Ley 20.584; RBAC; Newman"
+    cp.comments = (
+        "Plan de pruebas (19 casos), 17 hallazgos de seguridad y evidencia de ejecución "
+        "automatizada sobre el sistema Cuidarte+."
+    )
+
+
+def enable_update_fields(doc):
+    """Word actualiza el índice (TOC) al abrir el documento."""
+    settings = doc.settings.element
+    if settings.find(qn("w:updateFields")) is None:
+        uf = OxmlElement("w:updateFields")
+        uf.set(qn("w:val"), "true")
+        settings.append(uf)
+    return doc
+
+
+# ---------------------------------------------------------------- datos anexos
+TRAZABILIDAD = [
+    ("RF-1.1 (Login)", "Funcional", "Funcional + seguridad", "NFR-SEG-2/9, hash de contraseña", "CP-01, CP-03, CP-10"),
+    ("RF-1.2 (Refresh token)", "Funcional", "Funcional + seguridad", "NFR-SEG-9", "CP-02"),
+    ("RF-2.1 a RF-2.7 (Usuarios)", "Funcional", "Funcional / integración + RBAC", "Ley N° 19.628", "CP-05, CP-18"),
+    ("RF-3.1 / RF-3.2 (Exámenes)", "Funcional", "Funcional", "Ley N° 20.584", "CP-04, CP-07"),
+    ("RF-3.3 (Soft delete)", "Funcional", "Integridad / auditoría", "Borrado lógico + modal", "CP-08"),
+    ("RF-4.1 / RF-4.2 (Acceso del paciente)", "Funcional", "Funcional / RBAC", "Ley N° 20.584", "CP-06, CP-15"),
+    ("RF-4.3 / RF-4.4 (Adjuntos)", "Funcional", "Funcional / almacenamiento", "Adjuntos PDF e imagen", "CP-04, CP-14"),
+    ("RF-5.1 (Auditoría)", "Funcional", "Auditoría e integridad", "Log inmutable con IP", "CP-08, CP-09"),
+    ("NFR-SEG-1 (TLS y cabeceras)", "No funcional", "Seguridad DAST", "TLS 1.2+, OWASP A05", "CP-12, CP-19"),
+    ("NFR-SEG-2 (Contraseñas)", "No funcional", "Seguridad + funcional", "OWASP A07", "CP-01, CP-03, CP-10"),
+    ("NFR-SEG-3 (Cifrado en reposo)", "No funcional", "Seguridad / infraestructura", "Datos sensibles en reposo", "CP-14, CP-17"),
+    ("NFR-SEG-4 (RBAC)", "No funcional", "Seguridad / RBAC", "Ley N° 20.584, RB-1/2/3", "CP-06, CP-07, CP-18"),
+    ("NFR-SEG-5 (SQLi, XSS y errores)", "No funcional", "Seguridad DAST / SAST", "OWASP A03", "CP-10, CP-11, CP-12"),
+    ("NFR-SEG-7 (Respaldos)", "No funcional", "Disponibilidad / operación", "Backups restaurables", "CP-17"),
+    ("NFR-SEG-9 (Sesión JWT)", "No funcional", "Seguridad", "OWASP A07", "CP-01, CP-02"),
+    ("NFR-PERF-1 (< 300 ms)", "No funcional", "Rendimiento", "Latencia de la API", "CP-13"),
+    ("NFR-PERF-2 (SPA < 2 s)", "No funcional", "Rendimiento", "Lighthouse en red móvil", "CP-14"),
+    ("NFR-PERF-3 (200 usuarios)", "No funcional", "Rendimiento / carga", "Concurrencia", "CP-13"),
+    ("NFR-USAB-1 / NFR-USAB-4", "No funcional", "Usabilidad / accesibilidad", "WCAG 2.1 AA", "CP-15"),
+    ("NFR-COMPAT-1 / NFR-COMPAT-2", "No funcional", "Compatibilidad", "Navegadores y dispositivos", "CP-16"),
+    ("NFR-DIS-1 / NFR-DIS-2", "No funcional", "Disponibilidad", "Uptime 99,5% y rollback", "CP-17"),
+    ("RB-1 (Reserva clínica)", "Regla de negocio", "Control de acceso", "Ley N° 20.584", "CP-06"),
+    ("RB-2 (Segregación de roles)", "Regla de negocio", "Control de acceso", "Ley N° 19.628", "CP-07, CP-18"),
+    ("RB-3 (Profesional tratante)", "Regla de negocio", "Control de acceso", "Ley N° 20.584", "CP-04, CP-07"),
+]
+
+HALLAZGOS = [
+    ("H-01", "Contraseñas almacenadas y comparadas en texto plano", "Crítica", "A07", "auth.js:21 y auth.js:110", "CP-01, CP-03"),
+    ("H-02", "POST /usuarios acepta rol_id arbitrario con cualquier token", "Crítica", "A01", "users.js:23-53", "CP-07, CP-18"),
+    ("H-03", "DELETE /usuarios/:id ejecuta el borrado antes de leer el token", "Crítica", "A01", "users.js:571-589", "CP-18"),
+    ("H-04", "La API /roles no exige autenticación en POST, PUT ni DELETE", "Crítica", "A01", "roles.js:18, 36, 46, 57, 76", "CP-18"),
+    ("H-05", "La búsqueda pública por RUT expone la ficha clínica completa", "Crítica", "A01", "pacientes.js:249-273", "CP-06, CP-19"),
+    ("H-06", "Eliminación física de registros: no existe borrado lógico", "Crítica", "A04", "examenes.js:408; pacientes.js:399; users.js:574; documentos.js:275", "CP-08"),
+    ("H-07", "Borrar un usuario anula la autoría de sus registros de auditoría", "Alta", "A04", "sql/init.sql:90", "CP-09"),
+    ("H-08", "Secretos versionados y fallback de JWT_SECRET a la cadena 'inseguro'", "Alta", "A02", "BACKEND/.env:1-3; auth.js:8", "CP-01, CP-12"),
+    ("H-09", "Sin refresh token; JWT de 2 h almacenado en localStorage", "Alta", "A07", "auth.js:54; AuthContext.jsx:41; api.jsx:21", "CP-02"),
+    ("H-10", "El paciente puede reasignar el usuario_id de su propia ficha", "Alta", "A01", "pacientes.js:341, 344-350", "CP-07"),
+    ("H-11", "El rol Médico puede promoverse a Administrador", "Alta", "A01", "users.js:484, 522-532", "CP-07, CP-18"),
+    ("H-12", "Auditoría sin IP ni recurso, no atómica y con tipos incorrectos", "Alta", "A09", "sql/init.sql:88-93; roles.js:24-27; users.js:581-587", "CP-08, CP-09"),
+    ("H-13", "Latencia artificial de 5 s en endpoints críticos", "Media", "-", "middleware/delay.js:5-10, aplicado en examenes.js:46, 99, 330; pacientes.js:145; documentos.js:66", "CP-04, CP-13, CP-14"),
+    ("H-14", "Sin cabeceras de seguridad (helmet, CSP, HSTS) y CORS abierto", "Media", "A05", "app.js:21", "CP-11, CP-12"),
+    ("H-15", "Los errores internos de PostgreSQL se devuelven al cliente", "Media", "A05", "auth.js:67; examenes.js:94; documentos.js:115", "CP-10, CP-19"),
+    ("H-16", "Sin limite de intentos de inicio de sesión (fuerza bruta)", "Media", "A07", "auth.js:10", "CP-01, CP-10"),
+    ("H-17", "Adjuntos con MIME declarado por el cliente, nombre sin sanitizar y BYTEA sin cifrar", "Media", "A04", "documentos.js:10-28 y 248-251; sql/init.sql:82", "CP-04, CP-14"),
+]
+
+FALLAS = [
+    ("1", "CP-01 - vigencia (exp) del JWT", "<= 15 min", "120 min", "H-09"),
+    ("2", "CP-02 - POST /autenticacion/refresh", "200 o 201", "404: el endpoint no existe", "H-09"),
+    ("3", "CP-03 - registro con clave de 6 caracteres", "400 por política >= 12", "201 creado", "H-01"),
+    ("4", "CP-04 - latencia de POST /examenes", "< 300 ms", "5.014 ms", "H-13"),
+    ("5", "CP-04 - latencia de POST /documentos", "< 300 ms", "5.016 ms", "H-13"),
+    ("6", "CP-07 - un paciente crea un usuario administrador", "403", "201 creado", "H-02 (crítico)"),
+    ("7", "CP-07 - un médico cambia su propio rol_id", "400 o 403", "200 con rol admin", "H-11 (alto)"),
+    ("8", "CP-08 - borrado lógico: GET tras DELETE", "200 con eliminado = true", "404: el registro se destruyó", "H-06 (crítico)"),
+    ("9", "CP-08 - auditoría con ip_origen y recurso_id", "ambos campos presentes", "ambos ausentes en el esquema", "H-12 (alto)"),
+    ("10", "CP-18 - DELETE /usuarios sin token", "401", "404: ejecuta el borrado", "H-03 (crítico)"),
+    ("11", "CP-18 - DELETE /roles sin token", "401", "404", "H-04 (crítico)"),
+    ("12", "CP-18 - POST /roles sin token", "401", "500 (en la 1.ª corrida: 201)", "H-04 (crítico)"),
+    ("13", "CP-18 y CP-19 - búsqueda por RUT sin token", "401", "200 con la ficha completa", "H-05 (crítico)"),
+    ("14", "CP-18 - PUT /roles/:id sin token", "401", "200", "H-04 (crítico)"),
+    ("15", "CP-12 - cabecera X-Content-Type-Options", "nosniff", "ausente", "H-14"),
+    ("16", "CP-12 - cabecera X-Frame-Options", "presente", "ausente", "H-14"),
+    ("17", "CP-12 - cabecera Content-Security-Policy", "presente", "ausente", "H-14"),
+    ("18", "CP-12 - cabecera Strict-Transport-Security", "presente", "ausente", "H-14"),
+    ("19", "CP-12 - política CORS", "origen restringido", "Access-Control-Allow-Origin: *", "H-14"),
+    ("20", "CP-19 - glosa del error 500", "mensaje genérico", "invalid input syntax for type bigint", "H-15"),
+    ("21", "CP-11 - CSP en la respuesta con payload XSS", "presente", "ausente", "H-14"),
+    ("22", "CP-13A - GET /examenes", "< 300 ms", "5.009 ms", "H-13"),
+]
+
+CONFORMES = [
+    ("CP-01", "Login 200; credencial incorrecta 401; payloads SQLi y DROP TABLE rechazados con 401 y sin error de base de datos."),
+    ("CP-04", "Examen 201, documento 201 y descarga 200 con Content-Disposition: attachment."),
+    ("CP-05", "CRUD de pacientes: 201 con RUT valido, 400 con RUT invalido y 403 para el rol paciente."),
+    ("CP-06", "El paciente solo obtiene sus propios exámenes; ficha y documentos ajenos responden 403."),
+    ("CP-07", "Creación y edición de exámenes por el rol paciente: 403 en ambos intentos."),
+    ("CP-09", "GET /auditoria con rol paciente: 403."),
+    ("CP-10", "Inyección SQL clasica en el login: 401 uniforme, sin filtración del error de la base."),
+    ("CP-11", "Payload XSS almacenado y devuelto como texto, sin ejecución en el servidor."),
+    ("CP-13B", "Latencia de control en GET / por debajo de 300 ms."),
+    ("CP-17", "Healthcheck GET / responde status: ok."),
+]
+
+
+def anexos(doc):
+    page_break(doc)
+    h1(doc, "Anexos")
+    body_p(
+        doc,
+        "Los anexos complementan las secciones 1 a 4 con la evidencia que sustenta el plan: la "
+        "trazabilidad completa entre la especificación y los casos diseñados (Anexo A), el catálogo "
+        "de hallazgos detectados en el código fuente (Anexo B) y el resultado de la ejecución "
+        "automatizada de la colección de pruebas (Anexo C)."
+    )
+
+    h2(doc, "Anexo A. Matriz de trazabilidad ERS - casos de prueba")
+    body_p(
+        doc,
+        "Cada requerimiento de la especificación (ERS v1.1) se asocia al menos a un caso de prueba y "
+        "cada caso responde al menos a un requerimiento: no hay identificadores huérfanos ni casos "
+        "sin origen. La cobertura es de 11 RF + 14 NFR + 3 RB = 28 de 28 identificadores (100%), "
+        "distribuidos en los 19 casos diseñados en la sección 4."
+    )
+    grid_table(
+        doc,
+        ["ID requerimiento ERS", "Tipo", "Tipo de prueba", "Control normativo", "Caso(s)"],
+        TRAZABILIDAD,
+        widths_cm=[4.1, 2.1, 3.9, 3.7, 3.3],
+    )
+    caption(doc, "Tabla A.1. Trazabilidad ERS - casos de prueba. Cobertura 28/28 (100%).")
+
+    page_break(doc)
+    h2(doc, "Anexo B. Catálogo de hallazgos de seguridad")
+    body_p(
+        doc,
+        "Hallazgos obtenidos mediante revisión estática del código fuente y contrastados con el ERS "
+        "v1.1, OWASP Top 10 (2021) y las Leyes N° 19.628 y N° 20.584. Distribución por severidad: 6 "
+        "críticos (H-01 a H-06), 6 altos (H-07 a H-12) y 5 medios (H-13 a H-17); 17 en total. La "
+        "columna de ubicación referencia archivo y línea dentro de CodigoFuenteB/BACKEND, de modo "
+        "que cada hallazgo es verificable directamente sobre el código entregado."
+    )
+    grid_table(
+        doc,
+        ["ID", "Hallazgo", "Severidad", "OWASP", "Ubicación (archivo:línea)", "Lo detecta"],
+        HALLAZGOS,
+        widths_cm=[0.9, 4.1, 1.5, 1.1, 5.9, 3.6],
+        size=8,
+    )
+    caption(doc, "Tabla B.1. Catálogo de los 17 hallazgos y su ubicación en el código fuente.")
+    body_p(
+        doc,
+        "Controles verificados como correctos: todas las consultas SQL usan parámetros posicionales "
+        "de pg ($1), por lo que no se detectaron vulnerabilidades de inyección SQL (OWASP A03); el "
+        "control de acceso de lectura clínica del rol paciente (examenes.js:277-289 y "
+        "documentos.js:222-234) verifica correctamente la propiedad del registro; y la validación de "
+        "entrada esta centralizada mediante esquemas yup y el middleware validate.js."
+    )
+
+    page_break(doc)
+    h2(doc, "Anexo C. Evidencia de ejecución automatizada")
+    body_p(
+        doc,
+        "La colección Cuidarte_CP01-19.postman_collection.json se ejecutó con Newman 6 contra el "
+        "entorno QA en Docker (backend en http://localhost:4444 y PostgreSQL, levantados desde el "
+        "docker-compose.yml del código fuente), sin modificar una sola línea de la aplicación. La "
+        "evidencia bruta queda registrada en reports/results.json."
+    )
+    grid_table(
+        doc,
+        ["Métrica de la corrida", "Valor"],
+        [
+            ("Requests ejecutados", "48"),
+            ("Fallos de transporte", "0"),
+            ("Aserciones ejecutadas", "66"),
+            ("Aserciones fallidas (incumplimientos del ERS)", "22"),
+            ("Duración total", "55,2 s"),
+            ("Latencia media / mínima / máxima", "947 ms / 3 ms / 5.016 ms"),
+            ("Evidencia bruta", "reports/results.json"),
+        ],
+        widths_cm=[9.3, 7.8],
+    )
+    caption(doc, "Tabla C.1. Resumen de la corrida del 22 de septiembre de 2026.")
+    body_p(
+        doc,
+        "Una aserción fallida no indica una prueba mal construida: indica que el comportamiento real "
+        "del software difiere del comportamiento exigido por el ERS. Las 22 fallas son, por lo tanto, "
+        "hallazgos confirmados en tiempo de ejecución y no defectos del plan de pruebas."
+    )
+    grid_table(
+        doc,
+        ["#", "Caso y aserción", "Esperado (ERS)", "Obtenido", "Hallazgo"],
+        FALLAS,
+        widths_cm=[0.8, 5.4, 3.9, 4.3, 2.7],
+        size=8,
+    )
+    caption(doc, "Tabla C.2. Las 22 aserciones fallidas y su correlación con los hallazgos.")
+    body_p(
+        doc,
+        "En sentido inverso, la misma corrida confirma los controles que si cumplen el ERS. Estos "
+        "resultados sostienen el veredicto del informe: el problema del sistema no es la ausencia "
+        "total de controles, sino su aplicación incompleta e inconsistente."
+    )
+    grid_table(
+        doc,
+        ["Caso", "Comportamiento conforme verificado en ejecución"],
+        CONFORMES,
+        widths_cm=[2.1, 15.0],
+    )
+    caption(doc, "Tabla C.3. Comportamientos conformes verificados en la misma corrida.")
+    body_p(
+        doc,
+        "Reproducción: levantar los servicios cuidarteplus-postgres-ev y cuidarteplus-backend-ev con "
+        "docker compose desde CodigoFuenteB/CodigoFuenteB/docker-compose.yml y ejecutar npm install "
+        "y luego npm test en la raiz del paquete de evaluación."
+    )
 
 
 def configure_styles(doc):
@@ -603,7 +1105,8 @@ def configure_styles(doc):
     try:
         st = doc.styles["Normal"]
         st.font.name = "Arial"
-        st.font.size = Pt(10)
+        st.font.size = Pt(11)
+        st.paragraph_format.line_spacing = 1.5
         rPr = st.element.get_or_add_rPr()
         rFonts = rPr.find(qn("w:rFonts"))
         if rFonts is None:
@@ -614,7 +1117,7 @@ def configure_styles(doc):
     except KeyError:
         pass
     # Heading styles
-    for name, size, bold in (("Heading 1", 16, True), ("Heading 2", 12, True)):
+    for name, size, bold in (("Heading 1", 12, True), ("Heading 2", 12, True)):
         try:
             st = doc.styles[name]
             st.font.name = "Arial"
@@ -646,7 +1149,12 @@ def main():
     section2(doc)
     section3(doc)
     section4(doc)
+    section5(doc)
+    section6(doc)
+    anexos(doc)
 
+    set_doc_properties(doc)
+    enable_update_fields(doc)
     doc.save(OUT)
     print("OK", OUT)
     # verify

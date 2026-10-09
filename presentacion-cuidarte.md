@@ -13,11 +13,9 @@ Slides separados por `---` (formato Marp/reveal; importable a PowerPoint o Googl
 - Asignatura: ISY1102
 - Proyecto: Sistema de Exámenes Médicos **Cuidarte+**
 - Organización: CreaLab SpA – Departamento de Desarrollo
-- Sección: XX
-- Integrantes:
-  - Nombre Apellido Alumno 1
-  - Nombre Apellido Alumno 2
-  - Nombre Apellido Alumno 3
+- Sección: XX *(completar)*
+- Integrantes: Cristian Cerda · Gonzalo Berríos
+- Profesor: Cristian Medina
 
 Documento base: ERS v1.1 + análisis estático de `CodigoFuenteB` (solo lectura)
 

@@ -5,7 +5,8 @@
 - **Proyecto:** Sistema de Exámenes Médicos Cuidarte+
 - **Organización:** CreaLab SpA – Departamento de Desarrollo
 - **Documento Base:** ERS v1.1 + Código fuente `CodigoFuenteB.zip` (análisis estático, sin modificación). *El archivo ERS no viene en el paquete del encargo; la **§5 · Matriz de trazabilidad** lista los **28 IDs** (11 RF + 14 NFR + 3 RB) usados como anexo de referencias.*
-- **Integrantes:** Nombre Apellido Alumno 1 · Nombre Apellido Alumno 2 · Nombre Apellido Alumno 3 *(completar)*
+- **Integrantes:** Cristian Cerda · Gonzalo Berríos
+- **Profesor:** Cristian Medina
 
 ## Índice
 

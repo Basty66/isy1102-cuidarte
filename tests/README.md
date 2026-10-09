@@ -1,4 +1,4 @@
-# Ejecución de pruebas · rama `ejecucion-pruebas`
+# Ejecución de pruebas · runner Newman
 
 Levanta **solo** los servicios necesarios de Cuidarte+ y corre la colección
 `Cuidarte_CP01-19.postman_collection.json` con Newman.
